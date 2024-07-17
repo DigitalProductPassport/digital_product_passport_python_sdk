@@ -18,7 +18,7 @@ def test_deploy_contract(sdk):
     assert Web3.isAddress(contract_address)
 
 def test_create_product_passport(sdk):
-    contract_address = "0xe4D526e461Fb26B27Eeb142344B06Bf4c4688297"
+    contract_address = sdk.deploy_contract(sdk.product_passport_contract)
     product_details = {
         "productId": 1,
         "description": "Brigadeiro Product Passport",
@@ -37,13 +37,14 @@ def test_create_product_passport(sdk):
     assert tx_receipt["status"] == 1
 
 def test_interact_with_existing_contract(sdk):
-    contract_address = "0xe4D526e461Fb26B27Eeb142344B06Bf4c4688297"
+    contract_address = sdk.deploy_contract(sdk.product_passport_contract, sdk.account.address)
     product_id = 1
     product_passport = sdk.interact_with_existing_contract(contract_address, product_id)
     assert product_passport["productId"] == product_id
 
 def test_create_batch(sdk):
-    contract_address = "0xe4D526e461Fb26B27Eeb142344B06Bf4c4688297"
+    passport_contract_address = sdk.deploy_contract(sdk.product_passport_contract, sdk.account.address)
+    contract_address = sdk.deploy_contract(sdk.batch_contract, passport_contract_address, sdk.account.address)
     batch_details = {
         "batchId": 1,
         "batchNumber": "BRG-2023-001",
@@ -55,7 +56,8 @@ def test_create_batch(sdk):
     assert tx_receipt["status"] == 1
 
 def test_interact_with_existing_batch(sdk):
-    contract_address = "0xe4D526e461Fb26B27Eeb142344B06Bf4c4688297"
+    passport_contract_address = sdk.deploy_contract(sdk.product_passport_contract, sdk.account.address)
+    contract_address = sdk.deploy_contract(sdk.batch_contract, passport_contract_address, sdk.account.address)
     batch_id = 1
     batch_details = sdk.interact_with_existing_batch(contract_address, batch_id)
     assert batch_details["batchId"] == batch_id

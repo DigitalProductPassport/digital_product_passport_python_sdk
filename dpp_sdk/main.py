@@ -69,88 +69,139 @@ class DigitalProductPassportSDK:
         Returns:
             str: Address of the deployed contract.
         """
-        Greeter = self.web3.eth.contract(abi=contract['abi'], bytecode=contract['bytecode'])
-        tx_hash = Greeter.constructor().transact({'from': self.account.address})
+        Contract = self.web3.eth.contract(abi=contract['abi'], bytecode=contract['bytecode'])
+        tx_hash = Contract.constructor({'initialOwner' : self.account.address }).transact({'from': self.account.address})
         tx_receipt = self.web3.eth.wait_for_transaction_receipt(tx_hash)
         return tx_receipt.contractAddress
 
-    def create_product_passport(self, contract_address, product_details):
+    def authorize_entity(self, contract_address, entity_address):
         """
-        Create a new product passport on the blockchain.
+        Authorize an entity in the Product Passport contract.
 
         Args:
             contract_address (str): Address of the Product Passport contract.
+            entity_address (str): Address of the entity to authorize.
+
+        Returns:
+            dict: Transaction receipt.
+        """
+        contract = self.web3.eth.contract(address=contract_address, abi=self.product_passport_contract['abi'])
+        tx_hash = contract.functions.authorizeEntity(entity_address).transact({'from': self.account.address})
+        tx_receipt = self.web3.eth.wait_for_transaction_receipt(tx_hash)
+        return tx_receipt
+
+    def revoke_entity(self, contract_address, entity_address):
+        """
+        Revoke an entity in the Product Passport contract.
+
+        Args:
+            contract_address (str): Address of the Product Passport contract.
+            entity_address (str): Address of the entity to revoke.
+
+        Returns:
+            dict: Transaction receipt.
+        """
+        contract = self.web3.eth.contract(address=contract_address, abi=self.product_passport_contract['abi'])
+        tx_hash = contract.functions.revokeEntity(entity_address).transact({'from': self.account.address})
+        tx_receipt = self.web3.eth.wait_for_transaction_receipt(tx_hash)
+        return tx_receipt
+
+    def set_product(self, contract_address, product_id, product_details):
+        """
+        Set product details in the Product Passport contract.
+
+        Args:
+            contract_address (str): Address of the Product Passport contract.
+            product_id (int): ID of the product.
             product_details (dict): Details of the product.
 
         Returns:
-            dict: Transaction receipt of the product passport creation.
+            dict: Transaction receipt.
         """
         contract = self.web3.eth.contract(address=contract_address, abi=self.product_passport_contract['abi'])
-        tx_hash = contract.functions.createProductPassport(
-            product_details["productId"],
-            product_details["description"],
-            product_details["manuals"],
-            product_details["specifications"],
-            product_details["batchNumber"],
-            product_details["productionDate"],
-            product_details["expiryDate"],
-            product_details["certifications"],
-            product_details["warrantyInfo"],
-            product_details["materialComposition"],
-            product_details["complianceInfo"],
-            product_details["ipfs"]
+        tx_hash = contract.functions.setProduct(
+            product_id,
+            product_details["uid"],
+            product_details["gtin"],
+            product_details["taricCode"],
+            product_details["manufacturerInfo"],
+            product_details["consumerInfo"],
+            product_details["endOfLifeInfo"]
         ).transact({'from': self.account.address})
         tx_receipt = self.web3.eth.wait_for_transaction_receipt(tx_hash)
         return tx_receipt
 
-    def interact_with_existing_contract(self, contract_address, product_id):
+    def get_product(self, contract_address, product_id):
         """
-        Interact with an existing product passport contract.
+        Get product details from the Product Passport contract.
 
         Args:
             contract_address (str): Address of the Product Passport contract.
             product_id (int): ID of the product.
 
         Returns:
-            dict: Product passport details.
+            dict: Product details.
         """
         contract = self.web3.eth.contract(address=contract_address, abi=self.product_passport_contract['abi'])
-        product_passport = contract.functions.getProductPassport(product_id).call()
-        return product_passport
+        product = contract.functions.getProduct(product_id).call()
+        return product
 
-    def create_batch(self, contract_address, batch_details):
+    def set_product_data(self, contract_address, product_id, product_data):
         """
-        Create a new batch on the blockchain.
+        Set product data in the Product Passport contract.
 
         Args:
-            contract_address (str): Address of the Batch contract.
-            batch_details (dict): Details of the batch.
+            contract_address (str): Address of the Product Passport contract.
+            product_id (int): ID of the product.
+            product_data (dict): Data of the product.
 
         Returns:
-            dict: Transaction receipt of the batch creation.
+            dict: Transaction receipt.
         """
-        contract = self.web3.eth.contract(address=contract_address, abi=self.batch_contract['abi'])
-        tx_hash = contract.functions.createBatch(
-            batch_details["batchId"],
-            batch_details["batchNumber"],
-            batch_details["productionDate"],
-            batch_details["expiryDate"],
-            batch_details["quantity"]
+        contract = self.web3.eth.contract(address=contract_address, abi=self.product_passport_contract['abi'])
+        tx_hash = contract.functions.setProductData(
+            product_id,
+            product_data["description"],
+            product_data["manuals"],
+            product_data["specifications"],
+            product_data["batchNumber"],
+            product_data["productionDate"],
+            product_data["expiryDate"],
+            product_data["certifications"],
+            product_data["warrantyInfo"],
+            product_data["materialComposition"],
+            product_data["complianceInfo"]
         ).transact({'from': self.account.address})
         tx_receipt = self.web3.eth.wait_for_transaction_receipt(tx_hash)
         return tx_receipt
 
-    def interact_with_existing_batch(self, contract_address, batch_id):
+    def get_product_data(self, contract_address, product_id):
         """
-        Interact with an existing batch contract.
+        Get product data from the Product Passport contract.
 
         Args:
-            contract_address (str): Address of the Batch contract.
-            batch_id (int): ID of the batch.
+            contract_address (str): Address of the Product Passport contract.
+            product_id (int): ID of the product.
 
         Returns:
-            dict: Batch details.
+            dict: Product data.
         """
-        contract = self.web3.eth.contract(address=contract_address, abi=self.batch_contract['abi'])
-        batch_details = contract.functions.getBatch(batch_id).call()
-        return batch_details
+        contract = self.web3.eth.contract(address=contract_address, abi=self.product_passport_contract['abi'])
+        product_data = contract.functions.getProductData(product_id).call()
+        return product_data
+
+    def transfer_ownership(self, contract_address, new_owner):
+        """
+        Transfer ownership of the Product Passport contract.
+
+        Args:
+            contract_address (str): Address of the Product Passport contract.
+            new_owner (str): Address of the new owner.
+
+        Returns:
+            dict: Transaction receipt.
+        """
+        contract = self.web3.eth.contract(address=contract_address, abi=self.product_passport_contract['abi'])
+        tx_hash = contract.functions.transferOwnership(new_owner).transact({'from': self.account.address})
+        tx_receipt = self.web3.eth.wait_for_transaction_receipt(tx_hash)
+        return tx_receipt
