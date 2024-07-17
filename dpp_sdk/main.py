@@ -11,8 +11,8 @@ class DigitalProductPassportSDK:
     Attributes:
         web3 (Web3): Instance of Web3 for interacting with Ethereum blockchain.
         account (LocalAccount): Account instance for signing transactions.
-        product_passport_abi (list): ABI for the Product Passport contract.
-        batch_abi (list): ABI for the Batch contract.
+        product_passport_contract (dict): ABI and bytecode for the Product Passport contract.
+        batch_contract (dict): ABI and bytecode for the Batch contract.
     """
 
     def __init__(self, provider_url=None, private_key=None):
@@ -38,37 +38,39 @@ class DigitalProductPassportSDK:
         if private_key is None:
             raise ValueError("Private key must be provided.")
         
-        self.product_passport_abi = self.load_abi("ProductPassport.sol/ProductPassport.json")
-        self.batch_abi = self.load_abi("Batch.sol/Batch.json")
+        self.product_passport_contract = self.load_contract("ProductPassport.sol/ProductPassport.json")
+        self.batch_contract = self.load_contract("Batch.sol/Batch.json")
 
-    def load_abi(self, contract):
+    def load_contract(self, contract_path):
         """
-        Load the ABI from the local JSON file.
+        Load the contract's ABI and bytecode from the local JSON file.
 
         Args:
-            contract (str): Path to the ABI JSON file.
+            contract_path (str): Path to the contract JSON file.
 
         Returns:
-            list: Loaded ABI as a list of dictionaries.
+            dict: Loaded contract containing ABI and bytecode.
         """
-        ABI_PATH = os.path.join(os.path.dirname(ABI.__file__), contract)
+        ABI_PATH = os.path.join(os.path.dirname(ABI.__file__), contract_path)
         with open(ABI_PATH) as file:
-            contract_abi = json.load(file)
-        return contract_abi
+            contract_interface = json.load(file)
+        return {
+            "abi": contract_interface['abi'],
+            "bytecode": contract_interface['bytecode']
+        }
 
-    def deploy_contract(self, abi, bytecode):
+    def deploy_contract(self, contract):
         """
         Deploy a smart contract to the blockchain.
 
         Args:
-            abi (list): ABI of the contract.
-            bytecode (str): Bytecode of the contract.
+            contract (dict): Contract containing ABI and bytecode.
 
         Returns:
             str: Address of the deployed contract.
         """
-        contract = self.web3.eth.contract(abi=abi, bytecode=bytecode)
-        tx_hash = contract.constructor().transact({'from': self.account.address})
+        Greeter = self.web3.eth.contract(abi=contract['abi'], bytecode=contract['bytecode'])
+        tx_hash = Greeter.constructor().transact({'from': self.account.address})
         tx_receipt = self.web3.eth.wait_for_transaction_receipt(tx_hash)
         return tx_receipt.contractAddress
 
@@ -83,7 +85,7 @@ class DigitalProductPassportSDK:
         Returns:
             dict: Transaction receipt of the product passport creation.
         """
-        contract = self.web3.eth.contract(address=contract_address, abi=self.product_passport_abi)
+        contract = self.web3.eth.contract(address=contract_address, abi=self.product_passport_contract['abi'])
         tx_hash = contract.functions.createProductPassport(
             product_details["productId"],
             product_details["description"],
@@ -112,7 +114,7 @@ class DigitalProductPassportSDK:
         Returns:
             dict: Product passport details.
         """
-        contract = self.web3.eth.contract(address=contract_address, abi=self.product_passport_abi)
+        contract = self.web3.eth.contract(address=contract_address, abi=self.product_passport_contract['abi'])
         product_passport = contract.functions.getProductPassport(product_id).call()
         return product_passport
 
@@ -127,7 +129,7 @@ class DigitalProductPassportSDK:
         Returns:
             dict: Transaction receipt of the batch creation.
         """
-        contract = self.web3.eth.contract(address=contract_address, abi=self.batch_abi)
+        contract = self.web3.eth.contract(address=contract_address, abi=self.batch_contract['abi'])
         tx_hash = contract.functions.createBatch(
             batch_details["batchId"],
             batch_details["batchNumber"],
@@ -149,6 +151,6 @@ class DigitalProductPassportSDK:
         Returns:
             dict: Batch details.
         """
-        contract = self.web3.eth.contract(address=contract_address, abi=self.batch_abi)
+        contract = self.web3.eth.contract(address=contract_address, abi=self.batch_contract['abi'])
         batch_details = contract.functions.getBatch(batch_id).call()
         return batch_details
