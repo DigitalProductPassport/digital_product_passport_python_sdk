@@ -22,3 +22,6 @@ packages = ["dpp_sdk"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+
+[tool.setuptools.package-data]
+"dpp_sdk.resources.ABI" = ["resources/ABI/**/*.json"]
