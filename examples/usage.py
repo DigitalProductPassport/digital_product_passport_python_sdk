@@ -1,12 +1,32 @@
-from dpp_sdk.main import DigitalProductPassportSDK
+import json
+from solidity_python_sdk.main import DigitalProductPassportSDK
 
-sdk = DigitalProductPassportSDK()
+def deploy_and_set_product(details_file_path):
+    # Initialize the SDK
+    sdk = DigitalProductPassportSDK()
 
-product_details_path = 'path_to_product_details.json'
-with open(product_details_path, 'r') as f:
-    product_details = json.load(f)
+    # Load the details from the JSON file
+    with open('details.json', 'r') as f:
+        product_details = json.load(f)
 
-existing_contract_address = 'existing_contract_address_here'
-product_id = 1
-passport = sdk.interact_with_existing_contract(existing_contract_address, product_id)
-print(json.dumps(passport, indent=2))
+    # Extract necessary details from the JSON data
+    product_id = product_details.get("productId")
+    if not product_id:
+        raise ValueError("Product ID not found in JSON file")
+
+    # Deploy the contract
+    account_address = sdk.account.address  # or fetch it from the details if needed
+    contract_address = sdk.product_passport.deploy(account_address)
+    
+    # Print the address of the deployed contract
+    print(f"Contract deployed at address: {contract_address}")
+
+    # Set product details on the deployed contract
+    tx_receipt = sdk.product_passport.set_product_data(contract_address, product_id, product_details)
+    
+    if tx_receipt["status"] == 1:
+        print("Product details set successfully.")
+    else:
+        print("Failed to set product details.")
+    
+    return contract_address

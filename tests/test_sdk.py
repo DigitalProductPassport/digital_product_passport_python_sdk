@@ -13,7 +13,7 @@ def test_load_contract(sdk):
 
 def test_deploy_product_passport_contract(sdk):
     contract_address = sdk.product_passport.deploy(sdk.account.address)
-    assert Web3.isAddress(contract_address)
+    assert Web3.is_address(contract_address)
 
 def test_set_and_get_product(sdk):
     contract_address = sdk.product_passport.deploy(sdk.account.address)
@@ -29,7 +29,12 @@ def test_set_and_get_product(sdk):
     assert tx_receipt["status"] == 1
 
     product = sdk.product_passport.get_product(contract_address, 1)
-    assert product["productId"] == 1
+    assert product["uid"] == "unique_id"
+    assert product["gtin"] == "1234567890123"
+    assert product["taricCode"] == "1234"
+    assert product["manufacturerInfo"] == "Manufacturer XYZ"
+    assert product["consumerInfo"] == "Consumer XYZ"
+    assert product["endOfLifeInfo"] == "Dispose properly"
 
 def test_set_and_get_product_data(sdk):
     contract_address = sdk.product_passport.deploy(sdk.account.address)
@@ -50,3 +55,12 @@ def test_set_and_get_product_data(sdk):
 
     product_data_retrieved = sdk.product_passport.get_product_data(contract_address, 1)
     assert product_data_retrieved["description"] == "Product description"
+    assert product_data_retrieved["manuals"] == ["manual1.pdf"]
+    assert product_data_retrieved["specifications"] == ["spec1.pdf"]
+    assert product_data_retrieved["batchNumber"] == "123ABC"
+    assert product_data_retrieved["productionDate"] == "2023-01-01"
+    assert product_data_retrieved["expiryDate"] == "2023-12-31"
+    assert product_data_retrieved["certifications"] == "ISO123"
+    assert product_data_retrieved["warrantyInfo"] == "1 year"
+    assert product_data_retrieved["materialComposition"] == "Materials"
+    assert product_data_retrieved["complianceInfo"] == "Complies with regulations"

@@ -3,6 +3,7 @@ import json
 from web3 import Web3
 from dotenv import load_dotenv
 import os
+from eth_account import Account
 from solidity_python_sdk.contracts.product_passport import ProductPassport
 from solidity_python_sdk.contracts.geolocation import Geolocation
 from solidity_python_sdk.contracts.batch import Batch
