@@ -3,7 +3,7 @@ requires = ["setuptools", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "dpp_sdk"
+name = "solidity-python-sdk"
 version = "0.1.0"
 description = "SDK for interacting with Digital Product Passport smart contracts"
 readme = "README.md"
@@ -15,10 +15,10 @@ authors = [
 dependencies = ["web3", "python-dotenv", "requests"]
 
 [project.urls]
-Homepage = "https://github.com/DigitalProductPassport/digital_product_passport_python_sdk"
+Homepage = "https://github.com/DigitalProductPassport/solidity-python-sdk"
 
 [tool.setuptools]
-packages = ["dpp_sdk"]
+packages = ["solidity_python_sdk"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

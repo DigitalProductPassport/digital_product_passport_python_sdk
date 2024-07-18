@@ -1,6 +1,6 @@
 import pytest
 from web3 import Web3
-from dpp_sdk.main import DigitalProductPassportSDK
+from solidity_python_sdk.main import DigitalProductPassportSDK
 
 @pytest.fixture
 def sdk():

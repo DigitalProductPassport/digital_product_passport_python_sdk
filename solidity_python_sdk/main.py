@@ -3,10 +3,10 @@ import json
 from web3 import Web3
 from dotenv import load_dotenv
 import os
-from dpp_sdk.contracts.product_passport import ProductPassport
-from dpp_sdk.contracts.geolocation import Geolocation
-from dpp_sdk.contracts.batch import Batch
-from dpp_sdk.resources import ABI
+from solidity_python_sdk.contracts.product_passport import ProductPassport
+from solidity_python_sdk.contracts.geolocation import Geolocation
+from solidity_python_sdk.contracts.batch import Batch
+from solidity_python_sdk.resources import ABI
 
 class DigitalProductPassportSDK:
     """
