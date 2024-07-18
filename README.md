@@ -15,6 +15,13 @@ The **Solidity Python SDK** is a Python library designed for interacting with Di
 
 To install the SDK, you can use pip:
 
+
+
+```bash
+pip install -i https://test.pypi.org/simple/ solidity-python-sdk==0.1.1
+```
+or 
+
 ```bash
 pip install solidity-python-sdk
 ```
