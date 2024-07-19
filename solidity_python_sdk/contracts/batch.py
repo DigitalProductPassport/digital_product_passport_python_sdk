@@ -1,42 +1,28 @@
-import json
 import logging
-import os
-from web3 import Web3
-from eth_account import Account
+from solidity_python_sdk import utils
 
 class Batch:
-    def __init__(self, web3: Web3, account, contract):
-        """
-        Initializes the Batch instance.
-
-        Args:
-            web3 (Web3): An instance of the Web3 class.
-            account: The account to be used for transactions.
-            contract: The contract details including ABI and bytecode.
-        """
-        self.web3 = web3
-        self.account = account
-        self.contract = contract
+    def __init__(self, sdk):
+        self.sdk = sdk
+        self.web3 = sdk.web3
+        self.account = sdk.account
+        self.contract = sdk.contracts['Batch']
+        self.gas = sdk.gas
+        self.gwei_bid = sdk.gwei_bid
         self.logger = logging.getLogger(__name__)
 
     def deploy(self, product_passport_address):
-        """
-        Deploys the Batch contract to the blockchain.
-        
-        Args:
-            product_passport_address (str): The address of the ProductPassport contract.
-        
-        Returns:
-            str: The address of the deployed contract.
-        """
         self.logger.info(f"Deploying Batch contract from {self.account.address}")
         Contract = self.web3.eth.contract(abi=self.contract["abi"], bytecode=self.contract["bytecode"])
+        
         tx = Contract.constructor(product_passport_address).build_transaction({
             'from': self.account.address,
             'nonce': self.web3.eth.get_transaction_count(self.account.address),
-            'gas': 2000000,
-            'gasPrice': self.web3.to_wei('50', 'gwei')
+            'gas': self.gas,
+            'gasPrice': self.web3.to_wei(self.gwei_bid, 'gwei')
         })
+        utils.check_funds(self.web3, self.account.address, tx['gas'] * tx['gasPrice'])
+
         signed_tx = self.web3.eth.account.sign_transaction(tx, self.account.key)
         tx_hash = self.web3.eth.send_raw_transaction(signed_tx.rawTransaction)
         tx_receipt = self.web3.eth.wait_for_transaction_receipt(tx_hash)
@@ -64,6 +50,7 @@ class Batch:
             batch_details["expiryDate"],
             batch_details["quantity"]
         ).transact({'from': self.account.address})
+
         tx_receipt = self.web3.eth.wait_for_transaction_receipt(tx_hash)
         return tx_receipt
 
@@ -79,4 +66,4 @@ class Batch:
             dict: The batch details.
         """
         contract = self.web3.eth.contract(address=contract_address, abi=self.contract['abi'])
-        return contract.functions.getBatch(batch_id).call()
+        return contract.functions.getBatch(batch_id)().call()

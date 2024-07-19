@@ -1,49 +1,36 @@
-import json
 import logging
-import os
-from web3 import Web3
-from eth_account import Account
+from solidity_python_sdk import utils
 
 class ProductPassport:
-    def __init__(self, web3: Web3, account, contract):
-        """
-        Initializes the ProductPassport instance.
+    def __init__(self, sdk):
+        self.sdk = sdk
+        self.web3 = sdk.web3
+        self.account = sdk.account
+        self.gas = sdk.gas
+        self.gwei_bid = sdk.gwei_bid
 
-        Args:
-            web3 (Web3): An instance of the Web3 class.
-            account: The account to be used for transactions.
-            contract: The contract details including ABI and bytecode.
-        """
-        self.web3 = web3
-        self.account = account
-        self.contract = contract
+        logging.debug(f"Available contracts: {list(sdk.contracts.keys())}")
+
+        if 'ProductPassport' not in sdk.contracts:
+            raise ValueError("Contract 'ProductPassport' not found in SDK")
+
+        self.contract = sdk.contracts['ProductPassport']
+        self.product_details_contract = sdk.contracts['ProductDetails']
         self.logger = logging.getLogger(__name__)
 
     def deploy(self, initial_owner=None):
-        """
-        Deploys the ProductPassport contract to the blockchain.
-        
-        Args:
-            initial_owner (str, optional): The initial owner address. Defaults to None.
-        
-        Returns:
-            str: The address of the deployed contract.
-        """
         self.logger.info(f"Deploying ProductPassport contract from {self.account.address}")
         Contract = self.web3.eth.contract(abi=self.contract["abi"], bytecode=self.contract["bytecode"])
 
-        # Create transaction
         tx = Contract.constructor(initial_owner or self.account.address).build_transaction({
             'from': self.account.address,
             'nonce': self.web3.eth.get_transaction_count(self.account.address),
-            'gas': 2000000,
-            'gasPrice': self.web3.to_wei('50', 'gwei')
+            'gas': self.gas,
+            'gasPrice': self.web3.to_wei(self.gwei_bid, 'gwei')
         })
+        utils.check_funds(self.web3, self.account.address, tx['gas'] * tx['gasPrice'])
 
-        # Sign transaction
         signed_tx = self.web3.eth.account.sign_transaction(tx, self.account.key)
-
-        # Send transaction
         tx_hash = self.web3.eth.send_raw_transaction(signed_tx.rawTransaction)
         tx_receipt = self.web3.eth.wait_for_transaction_receipt(tx_hash)
         contract_address = tx_receipt.contractAddress
@@ -63,7 +50,7 @@ class ProductPassport:
         Returns:
             dict: The transaction receipt.
         """
-        contract = self.web3.eth.contract(address=contract_address, abi=self.contract['abi'])
+        contract = self.web3.eth.contract(address=contract_address, abi=self.product_details_contract['abi'])
         tx = contract.functions.setProduct(
             product_id,
             product_details["uid"],
@@ -75,9 +62,11 @@ class ProductPassport:
         ).build_transaction({
             'from': self.account.address,
             'nonce': self.web3.eth.get_transaction_count(self.account.address),
-            'gas': 2000000,
-            'gasPrice': self.web3.to_wei('50', 'gwei')
+            'gas': self.gas,
+            'gasPrice': self.web3.to_wei(self.gwei_bid, 'gwei')
         })
+
+        utils.check_funds(self.web3, self.account.address, tx['gas'] * tx['gasPrice'])
 
         signed_tx = self.web3.eth.account.sign_transaction(tx, self.account.key)
         tx_hash = self.web3.eth.send_raw_transaction(signed_tx.rawTransaction)
@@ -95,8 +84,8 @@ class ProductPassport:
         Returns:
             dict: The product details.
         """
-        contract = self.web3.eth.contract(address=contract_address, abi=self.contract['abi'])
-        return contract.functions.getProduct(product_id).call()
+        contract = self.web3.eth.contract(address=contract_address, abi=self.product_details_contract['abi'])
+        return contract.functions.getProduct(product_id)().call()
 
     def set_product_data(self, contract_address, product_id, product_data):
         """
@@ -104,7 +93,7 @@ class ProductPassport:
         
         Args:
             contract_address (str): The address of the deployed contract.
-            product_id (str): The unique identifier for the product.
+            product_id (int): The unique identifier for the product.
             product_data (dict): A dictionary containing product data.
         
         Returns:
@@ -112,7 +101,7 @@ class ProductPassport:
         """
         contract = self.web3.eth.contract(address=contract_address, abi=self.contract['abi'])
         tx = contract.functions.setProductData(
-            product_id,
+            int(product_id),
             product_data["description"],
             product_data["manuals"],
             product_data["specifications"],
@@ -126,9 +115,10 @@ class ProductPassport:
         ).build_transaction({
             'from': self.account.address,
             'nonce': self.web3.eth.get_transaction_count(self.account.address),
-            'gas': 2000000,
-            'gasPrice': self.web3.to_wei('50', 'gwei')
+            'gas': self.gas,
+            'gasPrice': self.web3.to_wei(self.gwei_bid, 'gwei')
         })
+        utils.check_funds(self.web3, self.account.address, tx['gas'] * tx['gasPrice'])
 
         signed_tx = self.web3.eth.account.sign_transaction(tx, self.account.key)
         tx_hash = self.web3.eth.send_raw_transaction(signed_tx.rawTransaction)
@@ -141,10 +131,10 @@ class ProductPassport:
         
         Args:
             contract_address (str): The address of the deployed contract.
-            product_id (str): The unique identifier for the product.
+            product_id (int): The unique identifier for the product.
         
         Returns:
             dict: The product data.
         """
         contract = self.web3.eth.contract(address=contract_address, abi=self.contract['abi'])
-        return contract.functions.getProductData(product_id).call()
+        return contract.functions.getProductData(product_id)().call()
