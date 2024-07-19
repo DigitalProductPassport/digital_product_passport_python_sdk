@@ -21,13 +21,20 @@ class Batch:
 
         Args:
             sdk (DigitalProductPassportSDK): The SDK instance for blockchain interactions.
+
+        Raises:
+            KeyError: If the 'Batch' contract is not found in the SDK contracts.
         """
         self.sdk = sdk
         self.web3 = sdk.web3
         self.account = sdk.account
-        self.contract = sdk.contracts['Batch']
         self.gas = sdk.gas
         self.gwei_bid = sdk.gwei_bid
+
+        if 'Batch' not in sdk.contracts:
+            raise KeyError("Contract 'Batch' not found in SDK")
+
+        self.contract = sdk.contracts['Batch']
         self.logger = logging.getLogger(__name__)
 
     def deploy(self, product_passport_address):
@@ -39,6 +46,9 @@ class Batch:
 
         Returns:
             str: The address of the deployed Batch contract.
+
+        Raises:
+            ValueError: If the transaction fails or the contract cannot be deployed.
         """
         self.logger.info(f"Deploying Batch contract from {self.account.address}")
         Contract = self.web3.eth.contract(abi=self.contract["abi"], bytecode=self.contract["bytecode"])
@@ -66,10 +76,17 @@ class Batch:
         Args:
             contract_address (str): The address of the deployed Batch contract.
             batch_details (dict): A dictionary containing the batch details with keys such as:
-                "batchId", "batchNumber", "productionDate", "expiryDate", "quantity".
+                "batchId" (str): The unique identifier for the batch.
+                "batchNumber" (str): The batch number.
+                "productionDate" (str): The production date of the batch.
+                "expiryDate" (str): The expiry date of the batch.
+                "quantity" (int): The quantity of items in the batch.
 
         Returns:
             dict: The transaction receipt containing details of the transaction.
+
+        Raises:
+            ValueError: If the transaction fails or the batch cannot be created.
         """
         contract = self.web3.eth.contract(address=contract_address, abi=self.contract['abi'])
         tx_hash = contract.functions.createBatch(
@@ -93,6 +110,9 @@ class Batch:
 
         Returns:
             dict: The batch details retrieved from the contract.
+
+        Raises:
+            ValueError: If the batch cannot be retrieved or if the batch ID is invalid.
         """
         contract = self.web3.eth.contract(address=contract_address, abi=self.contract['abi'])
         return contract.functions.getBatch(batch_id)().call()

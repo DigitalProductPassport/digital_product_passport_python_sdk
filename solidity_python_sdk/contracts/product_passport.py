@@ -9,7 +9,6 @@ class ProductPassport:
         sdk (DigitalProductPassportSDK): The SDK instance for interacting with the blockchain.
         web3 (Web3): Web3 instance for blockchain interactions.
         account (Account): Ethereum account used for transactions.
-        gas (int): Gas limit for transactions.
         gwei_bid (int): Gas price in gwei.
         contract (dict): ABI and bytecode of the ProductPassport contract.
         product_details_contract (dict): ABI of the ProductDetails contract.
@@ -29,7 +28,6 @@ class ProductPassport:
         self.sdk = sdk
         self.web3 = sdk.web3
         self.account = sdk.account
-        self.gas = sdk.gas
         self.gwei_bid = sdk.gwei_bid
 
         logging.debug(f"Available contracts: {list(sdk.contracts.keys())}")
@@ -50,6 +48,9 @@ class ProductPassport:
 
         Returns:
             str: The address of the deployed contract.
+
+        Raises:
+            ValueError: If the deployment fails.
         """
         self.logger.info(f"Deploying ProductPassport contract from {self.account.address}")
         Contract = self.web3.eth.contract(abi=self.contract["abi"], bytecode=self.contract["bytecode"])
@@ -81,57 +82,69 @@ class ProductPassport:
         Sets the product details in the ProductPassport contract.
 
         Args:
-            contract_address (str): The address of the deployed contract.
+            contract_address (str): The address of the deployed ProductPassport contract.
             product_id (str): The unique identifier for the product.
             product_details (dict): A dictionary containing the product details with keys such as:
                 "uid", "gtin", "taricCode", "manufacturerInfo", "consumerInfo", "endOfLifeInfo".
 
         Returns:
             dict: The transaction receipt containing details of the transaction.
+
+        Raises:
+            ValueError: If the transaction fails.
         """
         contract = self.web3.eth.contract(address=contract_address, abi=self.product_details_contract['abi'])
-        tx = contract.functions.setProduct(
-            product_id,
-            product_details["uid"],
-            product_details["gtin"],
-            product_details["taricCode"],
-            product_details["manufacturerInfo"],
-            product_details["consumerInfo"],
-            product_details["endOfLifeInfo"]
-        ).build_transaction({
-            'from': self.account.address,
-            'nonce': self.web3.eth.get_transaction_count(self.account.address),
-            'gas': self.gas,
-            'gasPrice': self.web3.to_wei(self.gwei_bid, 'gwei')
-        })
 
-        utils.check_funds(self.web3, self.account.address, tx['gas'] * tx['gasPrice'])
+        try:
+            tx_hash = contract.functions.setProduct(
+                product_id,
+                product_details["uid"],
+                product_details["gtin"],
+                product_details["taricCode"],
+                product_details["manufacturerInfo"],
+                product_details["consumerInfo"],
+                product_details["endOfLifeInfo"]
+            ).transact({
+                'from': self.account.address
+            })
 
-        signed_tx = self.web3.eth.account.sign_transaction(tx, self.account.key)
-        tx_hash = self.web3.eth.send_raw_transaction(signed_tx.rawTransaction)
-        tx_receipt = self.web3.eth.wait_for_transaction_receipt(tx_hash)
-        return tx_receipt
+            tx_receipt = self.web3.eth.wait_for_transaction_receipt(tx_hash)
+            self.logger.info(f"Product set transaction receipt: {tx_receipt}")
+            return tx_receipt
+
+        except Exception as e:
+            self.logger.error(f"Failed to set product: {e}")
+            raise
 
     def get_product(self, contract_address, product_id):
         """
         Retrieves the product details from the ProductPassport contract.
 
         Args:
-            contract_address (str): The address of the deployed contract.
+            contract_address (str): The address of the deployed ProductPassport contract.
             product_id (str): The unique identifier for the product.
 
         Returns:
             dict: The product details retrieved from the contract.
+
+        Raises:
+            ValueError: If the product cannot be retrieved.
         """
         contract = self.web3.eth.contract(address=contract_address, abi=self.product_details_contract['abi'])
-        return contract.functions.getProduct(product_id)().call()
+        try:
+            product = contract.functions.getProduct(product_id)().call()
+            self.logger.info(f"Product retrieved: {product}")
+            return product
+        except Exception as e:
+            self.logger.error(f"Failed to retrieve product: {e}")
+            raise
 
     def set_product_data(self, contract_address, product_id, product_data):
         """
         Sets the product data in the ProductPassport contract.
 
         Args:
-            contract_address (str): The address of the deployed contract.
+            contract_address (str): The address of the deployed ProductPassport contract.
             product_id (int): The unique identifier for the product.
             product_data (dict): A dictionary containing product data with keys such as:
                 "description", "manuals", "specifications", "batchNumber", "productionDate",
@@ -139,43 +152,86 @@ class ProductPassport:
 
         Returns:
             dict: The transaction receipt containing details of the transaction.
+
+        Raises:
+            ValueError: If the transaction fails.
         """
         contract = self.web3.eth.contract(address=contract_address, abi=self.contract['abi'])
-        tx = contract.functions.setProductData(
-            int(product_id),
-            product_data["description"],
-            product_data["manuals"],
-            product_data["specifications"],
-            product_data["batchNumber"],
-            product_data["productionDate"],
-            product_data["expiryDate"],
-            product_data["certifications"],
-            product_data["warrantyInfo"],
-            product_data["materialComposition"],
-            product_data["complianceInfo"]
-        ).build_transaction({
-            'from': self.account.address,
-            'nonce': self.web3.eth.get_transaction_count(self.account.address),
-            'gas': self.gas,
-            'gasPrice': self.web3.to_wei(self.gwei_bid, 'gwei')
-        })
-        utils.check_funds(self.web3, self.account.address, tx['gas'] * tx['gasPrice'])
 
-        signed_tx = self.web3.eth.account.sign_transaction(tx, self.account.key)
-        tx_hash = self.web3.eth.send_raw_transaction(signed_tx.rawTransaction)
-        tx_receipt = self.web3.eth.wait_for_transaction_receipt(tx_hash)
-        return tx_receipt
+        try:
+            tx_hash = contract.functions.setProductData(
+                int(product_id),
+                product_data["description"],
+                product_data["manuals"],
+                product_data["specifications"],
+                product_data["batchNumber"],
+                product_data["productionDate"],
+                product_data["expiryDate"],
+                product_data["certifications"],
+                product_data["warrantyInfo"],
+                product_data["materialComposition"],
+                product_data["complianceInfo"]
+            ).transact({
+                'from': self.account.address
+            })
+
+            tx_receipt = self.web3.eth.wait_for_transaction_receipt(tx_hash)
+            self.logger.info(f"Product data set transaction receipt: {tx_receipt}")
+            return tx_receipt
+
+        except Exception as e:
+            self.logger.error(f"Failed to set product data: {e}")
+            raise
 
     def get_product_data(self, contract_address, product_id):
         """
         Retrieves the product data from the ProductPassport contract.
 
         Args:
-            contract_address (str): The address of the deployed contract.
+            contract_address (str): The address of the deployed ProductPassport contract.
             product_id (int): The unique identifier for the product.
 
         Returns:
             dict: The product data retrieved from the contract.
+
+        Raises:
+            ValueError: If the product data cannot be retrieved.
         """
         contract = self.web3.eth.contract(address=contract_address, abi=self.contract['abi'])
-        return contract.functions.getProductData(product_id)().call()
+        try:
+            product_data = contract.functions.getProductData(product_id)().call()
+            self.logger.info(f"Product data retrieved: {product_data}")
+            return product_data
+        except Exception as e:
+            self.logger.error(f"Failed to retrieve product data: {e}")
+            raise
+
+    def authorize_entity(self, contract_address, entity_address, role):
+        """
+        Authorizes an entity for a specific role in the ProductPassport contract.
+
+        Args:
+            contract_address (str): The address of the deployed ProductPassport contract.
+            entity_address (str): The address of the entity to be authorized.
+            role (str): The role to be assigned to the entity.
+
+        Returns:
+            dict: The transaction receipt containing details of the transaction.
+
+        Raises:
+            ValueError: If the transaction fails.
+        """
+        contract = self.web3.eth.contract(address=contract_address, abi=self.contract['abi'])
+
+        try:
+            tx_hash = contract.functions.authorizeEntity(entity_address, role).transact({
+                'from': self.account.address
+            })
+
+            tx_receipt = self.web3.eth.wait_for_transaction_receipt(tx_hash)
+            self.logger.info(f"Entity authorized: {entity_address} with role: {role}")
+            return tx_receipt
+
+        except Exception as e:
+            self.logger.error(f"Failed to authorize entity: {e}")
+            raise
