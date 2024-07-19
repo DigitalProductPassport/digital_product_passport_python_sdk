@@ -43,24 +43,29 @@ class ProductPassport:
 
     def deploy(self, initial_owner=None):
         """
-        Deploys the ProductPassport smart contract to the blockchain.
+        Deploys the ProductPassport contract to the blockchain.
 
         Args:
-            initial_owner (str, optional): The address of the initial owner of the contract. 
-                If not provided, defaults to the account address.
+            initial_owner (str, optional): The address of the initial owner of the contract. Defaults to the deployer's address.
 
         Returns:
-            str: The address of the deployed ProductPassport contract.
+            str: The address of the deployed contract.
         """
         self.logger.info(f"Deploying ProductPassport contract from {self.account.address}")
         Contract = self.web3.eth.contract(abi=self.contract["abi"], bytecode=self.contract["bytecode"])
 
+        # Estimate gas required for deployment
+        estimated_gas = Contract.constructor(initial_owner or self.account.address).estimate_gas({
+            'from': self.account.address
+        })
+
         tx = Contract.constructor(initial_owner or self.account.address).build_transaction({
             'from': self.account.address,
             'nonce': self.web3.eth.get_transaction_count(self.account.address),
-            'gas': self.gas,
+            'gas': estimated_gas,
             'gasPrice': self.web3.to_wei(self.gwei_bid, 'gwei')
         })
+
         utils.check_funds(self.web3, self.account.address, tx['gas'] * tx['gasPrice'])
 
         signed_tx = self.web3.eth.account.sign_transaction(tx, self.account.key)

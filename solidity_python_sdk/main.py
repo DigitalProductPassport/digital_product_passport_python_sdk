@@ -14,7 +14,7 @@ class DigitalProductPassportSDK:
     SDK for interacting with Digital Product Passport smart contracts.
     """
 
-    def __init__(self, provider_url=None, private_key=None, gas=254362, gwei_bid=30):
+    def __init__(self, provider_url=None, private_key=None, gas=254362, gwei_bid=3):
         """
         Initializes the SDK with a provider URL and private key.
         """
