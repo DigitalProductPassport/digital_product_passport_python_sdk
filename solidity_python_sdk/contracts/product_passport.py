@@ -206,32 +206,25 @@ class ProductPassport:
             self.logger.error(f"Failed to retrieve product data: {e}")
             raise
 
-    def authorize_entity(self, contract_address, entity_address, role):
+    def authorize_entity(self, contract_address, entity_address):
         """
-        Authorizes an entity for a specific role in the ProductPassport contract.
+        Authorizes an entity to interact with the ProductPassport contract.
 
         Args:
-            contract_address (str): The address of the deployed ProductPassport contract.
-            entity_address (str): The address of the entity to be authorized.
-            role (str): The role to be assigned to the entity.
+            contract_address (str): The address of the ProductPassport contract.
+            entity_address (str): The address of the entity to authorize.
 
         Returns:
             dict: The transaction receipt containing details of the transaction.
-
+        
         Raises:
             ValueError: If the transaction fails.
         """
         contract = self.web3.eth.contract(address=contract_address, abi=self.contract['abi'])
-
-        try:
-            tx_hash = contract.functions.authorizeEntity(entity_address, role).transact({
-                'from': self.account.address
-            })
-
-            tx_receipt = self.web3.eth.wait_for_transaction_receipt(tx_hash)
-            self.logger.info(f"Entity authorized: {entity_address} with role: {role}")
-            return tx_receipt
-
-        except Exception as e:
-            self.logger.error(f"Failed to authorize entity: {e}")
-            raise
+        
+        tx_hash = contract.functions.authorizeEntity(entity_address).transact({
+            'from': self.account.address
+        })
+        
+        tx_receipt = self.web3.eth.wait_for_transaction_receipt(tx_hash)
+        return tx_receipt
