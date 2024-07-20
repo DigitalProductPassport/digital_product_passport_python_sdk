@@ -12,7 +12,7 @@ license = {text = "MIT"}
 authors = [
   {name = "Luthiano Trarbach", email = "bhagah.trarbach@gmail.com"}
 ]
-dependencies = ["web3", "python-dotenv", "requests"]
+dependencies = ["web3", "python-dotenv", "requests", "pinatapy-vourhey", "eth-tester"]
 
 [project.urls]
 Homepage = "https://github.com/DigitalProductPassport/solidity-python-sdk"

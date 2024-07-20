@@ -1,39 +1,15 @@
 import pytest
-import logging
 from web3 import Web3
-from web3.providers.eth_tester import EthereumTesterProvider
-from web3.middleware import geth_poa_middleware
-from eth_account import Account
-from solidity_python_sdk import DigitalProductPassportSDK
-from solidity_python_sdk.contracts.product_passport import ProductPassport
+import logging
+from solidity_python_sdk.main import DigitalProductPassportSDK, ProductPassport
+
+# Setup logging
+logging.basicConfig(level=logging.DEBUG)
 
 @pytest.fixture()
-def tester_provider():
-    return EthereumTesterProvider()
-
-@pytest.fixture()
-def w3(tester_provider):
-    w3_instance = Web3(tester_provider)
-    w3_instance.middleware_onion.inject(geth_poa_middleware, layer=0)
-    return w3_instance
-
-@pytest.fixture()
-def accounts(w3):
-    account = Account.create()
-    return [account.address], account.key 
-
-@pytest.fixture()
-def sdk(w3, accounts):
-    # Initialize the SDK with the Web3 instance and the generated private key
-    private_key = accounts[1]  # Use the generated private key
-    # Initialize SDK with None for provider_url since we are using Web3 instance directly
-    sdk_instance = DigitalProductPassportSDK(
-        provider_url=None,
-        private_key=private_key
-    )
-    # Manually set the Web3 instance and account in SDK
-    sdk_instance.web3 = w3
-    return sdk_instance
+def sdk():
+    # Initialize the SDK
+    return DigitalProductPassportSDK()
 
 def test_load_contract(sdk):
     contract = sdk.contracts.get('ProductPassport')
@@ -43,18 +19,25 @@ def test_load_contract(sdk):
     logging.debug("Contract ABI and Bytecode loaded successfully")
 
 def test_deploy_product_passport_contract(sdk):
-    contract_address = sdk.product_passport.deploy(sdk.account.address)
+    passport = ProductPassport(sdk)
+    
+    # Deploy the contract
+    contract_address = passport.deploy(sdk.account.address)
+    
+    # Verify deployment
     assert Web3.is_address(contract_address), "Invalid contract address"
     logging.debug(f"Contract deployed at address: {contract_address}")
 
-def test_set_and_get_product(sdk):    
+def test_set_and_get_product(sdk):
+    passport = ProductPassport(sdk)
+    
     # Deploy the contract
-    contract_address = sdk.product_passport.deploy(sdk.account.address)
+    contract_address = passport.deploy(sdk.account.address)
     logging.debug(f"Contract deployed at address: {contract_address}")
 
-    # Authorize the account
-    entity_address = sdk.account.address
-    tx_receipt = sdk.product_passport.authorize_entity(contract_address, entity_address)
+    # Authorize the contract with the deployed address
+    entity_address = contract_address
+    tx_receipt = passport.authorize_entity(contract_address, entity_address)
     logging.debug(f"Authorization transaction receipt: {tx_receipt}")
 
     # Define product details
@@ -68,11 +51,11 @@ def test_set_and_get_product(sdk):
     }
 
     # Set product details
-    tx_receipt = sdk.product_passport.set_product(contract_address, "123456", product_details)
+    tx_receipt = passport.set_product(contract_address, "123456", product_details)
     logging.debug(f"Product set transaction receipt: {tx_receipt}")
 
-    # Retrieve product details
-    product_data_retrieved = sdk.product_passport.get_product(contract_address, "123456")
+    # Retrieve and assert product details
+    product_data_retrieved = passport.get_product(contract_address, "123456")
     assert product_data_retrieved['uid'] == "unique_id"
     assert product_data_retrieved['gtin'] == "1234567890123"
     assert product_data_retrieved['taricCode'] == "1234"
@@ -81,13 +64,15 @@ def test_set_and_get_product(sdk):
     assert product_data_retrieved['endOfLifeInfo'] == "Dispose properly"
 
 def test_set_and_get_product_data(sdk):
+    passport = ProductPassport(sdk)
+    
     # Deploy the contract
-    contract_address = sdk.product_passport.deploy(sdk.account.address)
+    contract_address = passport.deploy(sdk.account.address)
     logging.debug(f"Contract deployed at address: {contract_address}")
 
-    # Authorize the account
-    entity_address = sdk.account.address
-    tx_receipt = sdk.product_passport.authorize_entity(contract_address, entity_address)
+    # Authorize the contract with the deployed address
+    entity_address = contract_address
+    tx_receipt = passport.authorize_entity(contract_address, entity_address)
     logging.debug(f"Authorization transaction receipt: {tx_receipt}")
 
     # Define product data
@@ -105,11 +90,11 @@ def test_set_and_get_product_data(sdk):
     }
 
     # Set product data
-    tx_receipt = sdk.product_passport.set_product_data(contract_address, 123456, product_data)
+    tx_receipt = passport.set_product_data(contract_address, 123456, product_data)
     logging.debug(f"Product data set transaction receipt: {tx_receipt}")
 
-    # Retrieve product data
-    product_data_retrieved = sdk.product_passport.get_product_data(contract_address, 123456)
+    # Retrieve and assert product data
+    product_data_retrieved = passport.get_product_data(contract_address, 123456)
     assert product_data_retrieved['description'] == "Product description"
     assert product_data_retrieved['manuals'] == ["manual1.pdf"]
     assert product_data_retrieved['specifications'] == ["spec1.pdf"]

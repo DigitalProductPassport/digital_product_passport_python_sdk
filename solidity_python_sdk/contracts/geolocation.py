@@ -2,7 +2,7 @@ import json
 import logging
 import os
 from web3 import Web3
-from solidity_python_sdk import utils
+from solidity_python_sdk.utils import utils
 
 
 class Geolocation:

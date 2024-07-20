@@ -1,5 +1,5 @@
 import logging
-from solidity_python_sdk import utils
+from solidity_python_sdk.utils import utils
 
 class Batch:
     """
@@ -62,7 +62,7 @@ class Batch:
         utils.check_funds(self.web3, self.account.address, tx['gas'] * tx['gasPrice'])
 
         signed_tx = self.web3.eth.account.sign_transaction(tx, self.account.key)
-        tx_hash = self.web3.eth.send_raw_transaction(signed_tx.rawTransaction)
+        tx_hash = self.web3.eth.send_raw_transaction(signed_tx.raw_transaction)
         tx_receipt = self.web3.eth.wait_for_transaction_receipt(tx_hash)
         contract_address = tx_receipt.contractAddress
 
