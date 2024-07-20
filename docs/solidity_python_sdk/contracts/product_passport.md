@@ -1,297 +1,172 @@
-# Module `solidity_python_sdk.contracts.product_passport`
+# ProductPassport Module Documentation
 
-## Classes
+## Overview
 
-` class ProductPassport (web3: web3.main.Web3, account, contract) `
+The `ProductPassport` class provides an interface for interacting with the `ProductPassport` smart contract. This class allows for the deployment of the contract, setting and retrieving product information, and authorizing entities to interact with the contract.
 
-    
+## Class: `ProductPassport`
 
-Initializes the ProductPassport instance.
+### Attributes
 
-## Args
-
-**`web3`** : `Web3`
-
-    An instance of the Web3 class.
-**`account`**
-
-    The account to be used for transactions.
-**`contract`**
-
-    The contract details including ABI and bytecode.
-
-Expand source code
-
-    
-    
-    class ProductPassport:
-        def __init__(self, web3: Web3, account, contract):
-            """
-            Initializes the ProductPassport instance.
-    
-            Args:
-                web3 (Web3): An instance of the Web3 class.
-                account: The account to be used for transactions.
-                contract: The contract details including ABI and bytecode.
-            """
-            self.web3 = web3
-            self.account = account
-            self.contract = contract
-            self.logger = logging.getLogger(__name__)
-    
-        def deploy(self, initial_owner=None):
-            """
-            Deploys the ProductPassport contract to the blockchain.
-            
-            Args:
-                initial_owner (str, optional): The initial owner address. Defaults to None.
-            
-            Returns:
-                str: The address of the deployed contract.
-            """
-            self.logger.info(f"Deploying ProductPassport contract from {self.account.address}")
-            Contract = self.web3.eth.contract(abi=self.contract["abi"], bytecode=self.contract["bytecode"])
-    
-            # Create transaction
-            tx = Contract.constructor(initial_owner or self.account.address).build_transaction({
-                'from': self.account.address,
-                'nonce': self.web3.eth.get_transaction_count(self.account.address),
-                'gas': 2000000,
-                'gasPrice': self.web3.to_wei('50', 'gwei')
-            })
-    
-            # Sign transaction
-            signed_tx = self.web3.eth.account.sign_transaction(tx, self.account.key)
-    
-            # Send transaction
-            tx_hash = self.web3.eth.send_raw_transaction(signed_tx.rawTransaction)
-            tx_receipt = self.web3.eth.wait_for_transaction_receipt(tx_hash)
-            contract_address = tx_receipt.contractAddress
-    
-            self.logger.info(f"ProductPassport contract deployed at address: {contract_address}")
-            return contract_address
-    
-        def set_product(self, contract_address, product_id, product_details):
-            """
-            Sets the product details in the ProductPassport contract.
-            
-            Args:
-                contract_address (str): The address of the deployed contract.
-                product_id (str): The unique identifier for the product.
-                product_details (dict): A dictionary containing product details.
-            
-            Returns:
-                dict: The transaction receipt.
-            """
-            contract = self.web3.eth.contract(address=contract_address, abi=self.contract['abi'])
-            tx = contract.functions.setProduct(
-                product_id,
-                product_details["uid"],
-                product_details["gtin"],
-                product_details["taricCode"],
-                product_details["manufacturerInfo"],
-                product_details["consumerInfo"],
-                product_details["endOfLifeInfo"]
-            ).build_transaction({
-                'from': self.account.address,
-                'nonce': self.web3.eth.get_transaction_count(self.account.address),
-                'gas': 2000000,
-                'gasPrice': self.web3.to_wei('50', 'gwei')
-            })
-    
-            signed_tx = self.web3.eth.account.sign_transaction(tx, self.account.key)
-            tx_hash = self.web3.eth.send_raw_transaction(signed_tx.rawTransaction)
-            tx_receipt = self.web3.eth.wait_for_transaction_receipt(tx_hash)
-            return tx_receipt
-    
-        def get_product(self, contract_address, product_id):
-            """
-            Retrieves the product details from the ProductPassport contract.
-            
-            Args:
-                contract_address (str): The address of the deployed contract.
-                product_id (str): The unique identifier for the product.
-            
-            Returns:
-                dict: The product details.
-            """
-            contract = self.web3.eth.contract(address=contract_address, abi=self.contract['abi'])
-            return contract.functions.getProduct(product_id).call()
-    
-        def set_product_data(self, contract_address, product_id, product_data):
-            """
-            Sets the product data in the ProductPassport contract.
-            
-            Args:
-                contract_address (str): The address of the deployed contract.
-                product_id (str): The unique identifier for the product.
-                product_data (dict): A dictionary containing product data.
-            
-            Returns:
-                dict: The transaction receipt.
-            """
-            contract = self.web3.eth.contract(address=contract_address, abi=self.contract['abi'])
-            tx = contract.functions.setProductData(
-                product_id,
-                product_data["description"],
-                product_data["manuals"],
-                product_data["specifications"],
-                product_data["batchNumber"],
-                product_data["productionDate"],
-                product_data["expiryDate"],
-                product_data["certifications"],
-                product_data["warrantyInfo"],
-                product_data["materialComposition"],
-                product_data["complianceInfo"]
-            ).build_transaction({
-                'from': self.account.address,
-                'nonce': self.web3.eth.get_transaction_count(self.account.address),
-                'gas': 2000000,
-                'gasPrice': self.web3.to_wei('50', 'gwei')
-            })
-    
-            signed_tx = self.web3.eth.account.sign_transaction(tx, self.account.key)
-            tx_hash = self.web3.eth.send_raw_transaction(signed_tx.rawTransaction)
-            tx_receipt = self.web3.eth.wait_for_transaction_receipt(tx_hash)
-            return tx_receipt
-    
-        def get_product_data(self, contract_address, product_id):
-            """
-            Retrieves the product data from the ProductPassport contract.
-            
-            Args:
-                contract_address (str): The address of the deployed contract.
-                product_id (str): The unique identifier for the product.
-            
-            Returns:
-                dict: The product data.
-            """
-            contract = self.web3.eth.contract(address=contract_address, abi=self.contract['abi'])
-            return contract.functions.getProductData(product_id).call()
+- **`sdk`** (`DigitalProductPassportSDK`): The SDK instance used for blockchain interactions.
+- **`web3`** (`Web3`): The Web3 instance for interacting with the Ethereum blockchain.
+- **`account`** (`Account`): The Ethereum account used for transactions.
+- **`gwei_bid`** (`int`): Gas price in gwei.
+- **`contract`** (`dict`): ABI and bytecode of the `ProductPassport` contract.
+- **`product_details_contract`** (`dict`): ABI of the `ProductDetails` contract.
+- **`logger`** (`Logger`): Logger instance for logging information and debug messages.
 
 ### Methods
 
-` def deploy(self, initial_owner=None) `
+#### `__init__(self, sdk)`
 
-    
+Initializes the `ProductPassport` class with the provided SDK instance.
 
-Deploys the ProductPassport contract to the blockchain.
+- **Args**:
+  - `sdk` (`DigitalProductPassportSDK`): The SDK instance for blockchain interactions.
 
-## Args
+- **Raises**:
+  - `ValueError`: If the 'ProductPassport' contract is not found in the SDK contracts.
 
-**`initial_owner`** : `str`, optional
+#### `deploy(self, initial_owner=None)`
 
-    The initial owner address. Defaults to None.
+Deploys the `ProductPassport` contract to the blockchain.
 
-## Returns
+- **Args**:
+  - `initial_owner` (`str`, optional): The address of the initial owner of the contract. Defaults to the deployer's address.
 
-`str`
+- **Returns**:
+  - `str`: The address of the deployed contract.
 
-    The address of the deployed contract.
+- **Raises**:
+  - `ValueError`: If the deployment fails.
 
-` def get_product(self, contract_address, product_id) `
+#### `set_product(self, contract_address, product_id, product_details)`
 
-    
+Sets the product details in the `ProductPassport` contract.
 
-Retrieves the product details from the ProductPassport contract.
+- **Args**:
+  - `contract_address` (`str`): The address of the deployed `ProductPassport` contract.
+  - `product_id` (`str`): The unique identifier for the product.
+  - `product_details` (`dict`): A dictionary containing the product details with keys such as:
+    - `"uid"`
+    - `"gtin"`
+    - `"taricCode"`
+    - `"manufacturerInfo"`
+    - `"consumerInfo"`
+    - `"endOfLifeInfo"`
 
-## Args
+- **Returns**:
+  - `dict`: The transaction receipt containing details of the transaction.
 
-**`contract_address`** : `str`
+- **Raises**:
+  - `ValueError`: If the transaction fails.
 
-    The address of the deployed contract.
-**`product_id`** : `str`
+#### `get_product(self, contract_address, product_id)`
 
-    The unique identifier for the product.
+Retrieves the product details from the `ProductPassport` contract.
 
-## Returns
+- **Args**:
+  - `contract_address` (`str`): The address of the deployed `ProductPassport` contract.
+  - `product_id` (`str`): The unique identifier for the product.
 
-`dict`
+- **Returns**:
+  - `dict`: The product details retrieved from the contract.
 
-    The product details.
+- **Raises**:
+  - `ValueError`: If the product cannot be retrieved.
 
-` def get_product_data(self, contract_address, product_id) `
+#### `set_product_data(self, contract_address, product_id, product_data)`
 
-    
+Sets the product data in the `ProductPassport` contract.
 
-Retrieves the product data from the ProductPassport contract.
+- **Args**:
+  - `contract_address` (`str`): The address of the deployed `ProductPassport` contract.
+  - `product_id` (`int`): The unique identifier for the product.
+  - `product_data` (`dict`): A dictionary containing product data with keys such as:
+    - `"description"`
+    - `"manuals"`
+    - `"specifications"`
+    - `"batchNumber"`
+    - `"productionDate"`
+    - `"expiryDate"`
+    - `"certifications"`
+    - `"warrantyInfo"`
+    - `"materialComposition"`
+    - `"complianceInfo"`
 
-## Args
+- **Returns**:
+  - `dict`: The transaction receipt containing details of the transaction.
 
-**`contract_address`** : `str`
+- **Raises**:
+  - `ValueError`: If the transaction fails.
 
-    The address of the deployed contract.
-**`product_id`** : `str`
+#### `get_product_data(self, contract_address, product_id)`
 
-    The unique identifier for the product.
+Retrieves the product data from the `ProductPassport` contract.
 
-## Returns
+- **Args**:
+  - `contract_address` (`str`): The address of the deployed `ProductPassport` contract.
+  - `product_id` (`int`): The unique identifier for the product.
 
-`dict`
+- **Returns**:
+  - `dict`: The product data retrieved from the contract.
 
-    The product data.
+- **Raises**:
+  - `ValueError`: If the product data cannot be retrieved.
 
-` def set_product(self, contract_address, product_id, product_details) `
+#### `authorize_entity(self, contract_address, entity_address)`
 
-    
+Authorizes an entity to interact with the `ProductPassport` contract.
 
-Sets the product details in the ProductPassport contract.
+- **Args**:
+  - `contract_address` (`str`): The address of the `ProductPassport` contract.
+  - `entity_address` (`str`): The address of the entity to authorize.
 
-## Args
+- **Returns**:
+  - `dict`: The transaction receipt containing details of the transaction.
 
-**`contract_address`** : `str`
+- **Raises**:
+  - `ValueError`: If the transaction fails.
 
-    The address of the deployed contract.
-**`product_id`** : `str`
+## Dependencies
 
-    The unique identifier for the product.
-**`product_details`** : `dict`
+This module depends on:
 
-    A dictionary containing product details.
+- `solidity_python_sdk`: For contract utilities.
+- `web3`: For Ethereum blockchain interactions.
+- `logging`: For logging information and debug messages.
 
-## Returns
+## Example Usage
 
-`dict`
+Here’s a brief example of how to use the `ProductPassport` class:
 
-    The transaction receipt.
+```python
+from solidity_python_sdk import DigitalProductPassportSDK
+from solidity_python_sdk.product_passport import ProductPassport
 
-` def set_product_data(self, contract_address, product_id, product_data) `
+# Initialize SDK
+sdk = DigitalProductPassportSDK(provider_url="https://mainnet.infura.io/v3/YOUR_INFURA_PROJECT_ID",
+                                private_key="YOUR_PRIVATE_KEY")
 
-    
+# Create ProductPassport instance
+product_passport = ProductPassport(sdk)
 
-Sets the product data in the ProductPassport contract.
+# Deploy ProductPassport contract
+contract_address = product_passport.deploy()
 
-## Args
+# Set product details
+product_details = {
+    "uid": "1234567890",
+    "gtin": "0123456789012",
+    "taricCode": "1234",
+    "manufacturerInfo": "Example Manufacturer",
+    "consumerInfo": "Consumer Information",
+    "endOfLifeInfo": "End of Life Information"
+}
+tx_receipt = product_passport.set_product(contract_address, "product_id_1", product_details)
 
-**`contract_address`** : `str`
-
-    The address of the deployed contract.
-**`product_id`** : `str`
-
-    The unique identifier for the product.
-**`product_data`** : `dict`
-
-    A dictionary containing product data.
-
-## Returns
-
-`dict`
-
-    The transaction receipt.
-
-  * ### Super-module
-
-    * `[solidity_python_sdk.contracts](index.html "solidity_python_sdk.contracts")`
-  * ### Classes
-
-    * #### `ProductPassport`
-
-      * `deploy`
-      * `get_product`
-      * `get_product_data`
-      * `set_product`
-      * `set_product_data`
-
-Generated by [pdoc 0.11.1](https://pdoc3.github.io/pdoc "pdoc: Python API
-documentation generator").
-
+# Get product details
+product = product_passport.get_product(contract_address, "product_id_1")
+print(product)
+```

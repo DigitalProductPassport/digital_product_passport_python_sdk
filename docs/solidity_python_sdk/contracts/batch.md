@@ -1,179 +1,118 @@
-# Module `solidity_python_sdk.contracts.batch`
+# Batch Module Documentation
 
-## Classes
+## Overview
 
-` class Batch (web3: web3.main.Web3, account, contract) `
+The `Batch` class provides an interface for interacting with the `Batch` smart contract. This class facilitates the deployment of the contract, creating batches, and retrieving batch details from the blockchain.
 
-    
+## Class: `Batch`
 
-Initializes the Batch instance.
+### Attributes
 
-## Args
-
-**`web3`** : `Web3`
-
-    An instance of the Web3 class.
-**`account`**
-
-    The account to be used for transactions.
-**`contract`**
-
-    The contract details including ABI and bytecode.
-
-Expand source code
-
-    
-    
-    class Batch:
-        def __init__(self, web3: Web3, account, contract):
-            """
-            Initializes the Batch instance.
-    
-            Args:
-                web3 (Web3): An instance of the Web3 class.
-                account: The account to be used for transactions.
-                contract: The contract details including ABI and bytecode.
-            """
-            self.web3 = web3
-            self.account = account
-            self.contract = contract
-            self.logger = logging.getLogger(__name__)
-    
-        def deploy(self, product_passport_address):
-            """
-            Deploys the Batch contract to the blockchain.
-            
-            Args:
-                product_passport_address (str): The address of the ProductPassport contract.
-            
-            Returns:
-                str: The address of the deployed contract.
-            """
-            self.logger.info(f"Deploying Batch contract from {self.account.address}")
-            Contract = self.web3.eth.contract(abi=self.contract["abi"], bytecode=self.contract["bytecode"])
-            tx = Contract.constructor(product_passport_address).build_transaction({
-                'from': self.account.address,
-                'nonce': self.web3.eth.get_transaction_count(self.account.address),
-                'gas': 2000000,
-                'gasPrice': self.web3.to_wei('50', 'gwei')
-            })
-            signed_tx = self.web3.eth.account.sign_transaction(tx, self.account.key)
-            tx_hash = self.web3.eth.send_raw_transaction(signed_tx.rawTransaction)
-            tx_receipt = self.web3.eth.wait_for_transaction_receipt(tx_hash)
-            contract_address = tx_receipt.contractAddress
-    
-            self.logger.info(f"Batch contract deployed at address: {contract_address}")
-            return contract_address
-    
-        def create_batch(self, contract_address, batch_details):
-            """
-            Creates a new batch in the Batch contract.
-            
-            Args:
-                contract_address (str): The address of the deployed contract.
-                batch_details (dict): A dictionary containing batch details.
-            
-            Returns:
-                dict: The transaction receipt.
-            """
-            contract = self.web3.eth.contract(address=contract_address, abi=self.contract['abi'])
-            tx_hash = contract.functions.createBatch(
-                batch_details["batchId"],
-                batch_details["batchNumber"],
-                batch_details["productionDate"],
-                batch_details["expiryDate"],
-                batch_details["quantity"]
-            ).transact({'from': self.account.address})
-            tx_receipt = self.web3.eth.wait_for_transaction_receipt(tx_hash)
-            return tx_receipt
-    
-        def get_batch(self, contract_address, batch_id):
-            """
-            Retrieves the batch details from the Batch contract.
-            
-            Args:
-                contract_address (str): The address of the deployed contract.
-                batch_id (str): The unique identifier for the batch.
-            
-            Returns:
-                dict: The batch details.
-            """
-            contract = self.web3.eth.contract(address=contract_address, abi=self.contract['abi'])
-            return contract.functions.getBatch(batch_id).call()
+- **`sdk`** (`DigitalProductPassportSDK`): The SDK instance used for blockchain interactions.
+- **`web3`** (`Web3`): The Web3 instance for interacting with the Ethereum blockchain.
+- **`account`** (`Account`): The Ethereum account used for transactions.
+- **`contract`** (`dict`): ABI and bytecode of the `Batch` contract.
+- **`gas`** (`int`): Gas limit for transactions.
+- **`gwei_bid`** (`int`): Gas price in gwei.
+- **`logger`** (`Logger`): Logger instance for logging information and debug messages.
 
 ### Methods
 
-` def create_batch(self, contract_address, batch_details) `
+#### `__init__(self, sdk)`
 
-    
+Initializes the `Batch` class with the provided SDK instance.
 
-Creates a new batch in the Batch contract.
+- **Args**:
+  - `sdk` (`DigitalProductPassportSDK`): The SDK instance for blockchain interactions.
 
-## Args
+- **Raises**:
+  - `KeyError`: If the 'Batch' contract is not found in the SDK contracts.
 
-**`contract_address`** : `str`
+#### `deploy(self, product_passport_address)`
 
-    The address of the deployed contract.
-**`batch_details`** : `dict`
+Deploys the `Batch` smart contract to the blockchain.
 
-    A dictionary containing batch details.
+- **Args**:
+  - `product_passport_address` (`str`): The address of the `ProductPassport` contract to be used in the `Batch` contract.
 
-## Returns
+- **Returns**:
+  - `str`: The address of the deployed `Batch` contract.
 
-`dict`
+- **Raises**:
+  - `ValueError`: If the transaction fails or the contract cannot be deployed.
 
-    The transaction receipt.
+#### `create_batch(self, contract_address, batch_details)`
 
-` def deploy(self, product_passport_address) `
+Creates a new batch in the `Batch` contract.
 
-    
+- **Args**:
+  - `contract_address` (`str`): The address of the deployed `Batch` contract.
+  - `batch_details` (`dict`): A dictionary containing the batch details with keys such as:
+    - `"batchId"` (`str`): The unique identifier for the batch.
+    - `"batchNumber"` (`str`): The batch number.
+    - `"productionDate"` (`str`): The production date of the batch.
+    - `"expiryDate"` (`str`): The expiry date of the batch.
+    - `"quantity"` (`int`): The quantity of items in the batch.
 
-Deploys the Batch contract to the blockchain.
+- **Returns**:
+  - `dict`: The transaction receipt containing details of the transaction.
 
-## Args
+- **Raises**:
+  - `ValueError`: If the transaction fails or the batch cannot be created.
 
-**`product_passport_address`** : `str`
+#### `get_batch(self, contract_address, batch_id)`
 
-    The address of the ProductPassport contract.
+Retrieves the batch details from the `Batch` contract.
 
-## Returns
+- **Args**:
+  - `contract_address` (`str`): The address of the deployed `Batch` contract.
+  - `batch_id` (`str`): The unique identifier for the batch.
 
-`str`
+- **Returns**:
+  - `dict`: The batch details retrieved from the contract.
 
-    The address of the deployed contract.
+- **Raises**:
+  - `ValueError`: If the batch cannot be retrieved or if the batch ID is invalid.
 
-` def get_batch(self, contract_address, batch_id) `
+## Dependencies
 
-    
+This module depends on:
 
-Retrieves the batch details from the Batch contract.
+- `solidity_python_sdk`: For contract utilities.
+- `web3`: For Ethereum blockchain interactions.
+- `logging`: For logging information and debug messages.
 
-## Args
+## Example Usage
 
-**`contract_address`** : `str`
+Here’s a brief example of how to use the `Batch` class:
 
-    The address of the deployed contract.
-**`batch_id`** : `str`
+```python
+from solidity_python_sdk import DigitalProductPassportSDK
+from solidity_python_sdk.batch import Batch
 
-    The unique identifier for the batch.
+# Initialize SDK
+sdk = DigitalProductPassportSDK(provider_url="https://mainnet.infura.io/v3/YOUR_INFURA_PROJECT_ID",
+                                private_key="YOUR_PRIVATE_KEY")
 
-## Returns
+# Create Batch instance
+batch = Batch(sdk)
 
-`dict`
+# Deploy Batch contract
+product_passport_address = "0xYourProductPassportContractAddress"
+contract_address = batch.deploy(product_passport_address)
 
-    The batch details.
+# Create a new batch
+batch_details = {
+    "batchId": "batch123",
+    "batchNumber": "B123",
+    "productionDate": "2024-07-01",
+    "expiryDate": "2025-07-01",
+    "quantity": 1000
+}
+tx_receipt = batch.create_batch(contract_address, batch_details)
 
-  * ### Super-module
-
-    * `[solidity_python_sdk.contracts](index.html "solidity_python_sdk.contracts")`
-  * ### Classes
-
-    * #### `Batch`
-
-      * `create_batch`
-      * `deploy`
-      * `get_batch`
-
-Generated by [pdoc 0.11.1](https://pdoc3.github.io/pdoc "pdoc: Python API
-documentation generator").
-
+# Get batch details
+batch_id = "batch123"
+batch_info = batch.get_batch(contract_address, batch_id)
+print(batch_info)
+```
