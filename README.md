@@ -4,6 +4,8 @@
 
 The **Solidity Python SDK** is a Python library designed for interacting with Digital Product Passport smart contracts. It provides an easy-to-use interface for deploying and interacting with smart contracts on the Ethereum blockchain.
 
+[Read about the project](https://www.web3digitalproductpassport.com/)
+
 ## Features
 
 - **Load Contracts**: Load and interact with pre-deployed smart contracts.
@@ -17,7 +19,7 @@ The **Solidity Python SDK** is a Python library designed for interacting with Di
 To install the SDK, you can use pip:
 
 ```bash
-pip install -i https://test.pypi.org/simple/ solidity-python-sdk==0.1.1
+pip install -i https://test.pypi.org/simple/ solidity-python-sdk
 ```
 
 or 

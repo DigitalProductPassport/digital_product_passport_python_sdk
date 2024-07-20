@@ -19,9 +19,8 @@ def w3(tester_provider):
 
 @pytest.fixture()
 def accounts(w3):
-    # Generate a new account with a valid private key for testing
-    account = Account.create()  # Generates a new account with a private key
-    return [account.address], account.key  # Return address and private key
+    account = Account.create()
+    return [account.address], account.key 
 
 @pytest.fixture()
 def sdk(w3, accounts):
@@ -29,8 +28,8 @@ def sdk(w3, accounts):
     private_key = accounts[1]  # Use the generated private key
     # Initialize SDK with None for provider_url since we are using Web3 instance directly
     sdk_instance = DigitalProductPassportSDK(
-        provider_url=w3.HTTPProvider.endpoint_uri,
-        private_key=private_key.hex()  # Convert the private key to hex string
+        provider_url=None,
+        private_key=private_key
     )
     # Manually set the Web3 instance and account in SDK
     sdk_instance.web3 = w3

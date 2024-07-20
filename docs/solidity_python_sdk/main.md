@@ -4,6 +4,8 @@
 
 The `DigitalProductPassportSDK` is a Python SDK designed for interacting with Digital Product Passport smart contracts on the Ethereum blockchain. This SDK provides an interface for managing and interacting with smart contracts related to digital product passports, including functionalities for product information, batch management, and geolocation.
 
+[Read about the project](https://www.web3digitalproductpassport.com/)
+
 ## File Structure
 
 The SDK is contained within the file `digital_product_passport_sdk.py`, which includes the following key components:
@@ -110,9 +112,6 @@ Contributions are welcome! To contribute, follow these steps:
 4. **Push to the branch (`git push origin feature-branch`)**
 5. **Create a Pull Request**
 
-## License
-
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
 
 ## Contact
 

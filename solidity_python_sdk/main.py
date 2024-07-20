@@ -23,8 +23,8 @@ class DigitalProductPassportSDK:
         provider_url = provider_url or os.getenv("PROVIDER_URL")
         private_key = private_key or os.getenv("PRIVATE_KEY")
 
-        if not provider_url or not private_key:
-            raise ValueError("Provider URL and Private key must be provided.")
+        if not private_key:
+            raise ValueError("Private key must be provided.")
 
         self.web3 = Web3(Web3.HTTPProvider(provider_url))
         self.account = self.web3.eth.account.from_key(private_key)
