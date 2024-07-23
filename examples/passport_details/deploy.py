@@ -53,18 +53,16 @@ def deploy_product_passport():
 
 def deploy_batch_contract(product_passport_address):
     geolocations = [
-        {"id": "batch1", "latitude": "40.7128", "longitude": "-74.0060", "additionalInfo": "New York City, USA"},
-        {"id": "batch2", "latitude": "34.0522", "longitude": "-118.2437", "additionalInfo": "Los Angeles, USA"},
-        {"id": "batch3", "latitude": "51.5074", "longitude": "-0.1278", "additionalInfo": "London, UK"},
-        {"id": "batch4", "latitude": "35.6895", "longitude": "139.6917", "additionalInfo": "Tokyo, Japan"},
-        {"id": "batch5", "latitude": "-33.8688", "longitude": "151.2093", "additionalInfo": "Sydney, Australia"}
+        {"id": "1", "latitude": "40.7128", "longitude": "-74.0060", "additionalInfo": "New York City, USA"},
+        {"id": "2", "latitude": "34.0522", "longitude": "-118.2437", "additionalInfo": "Los Angeles, USA"},
+        {"id": "3", "latitude": "51.5074", "longitude": "-0.1278", "additionalInfo": "London, UK"},
+        {"id": "4", "latitude": "35.6895", "longitude": "139.6917", "additionalInfo": "Tokyo, Japan"},
+        {"id": "5", "latitude": "-33.8688", "longitude": "151.2093", "additionalInfo": "Sydney, Australia"}
     ]
 
-    batch_addresses = []
+    batch_address = sdk.batch.deploy(product_passport_address)
 
     for i, geo in enumerate(geolocations):
-        batch_address = sdk.batch.deploy(product_passport_address)
-        
         assembling_time = convert_to_unix_timestamp("2023-06-20 12:00:00")
         batch_details = {
             "batchId": i + 1,
@@ -78,11 +76,9 @@ def deploy_batch_contract(product_passport_address):
         print(f"Batch {i+1} Contract Address: {batch_address}")
         print(f"Set Batch {i+1} Result: {result}")
 
-        sdk.batch.set_geolocation(batch_address, geo['id'], geo['latitude'], geo['longitude'], geo['additionalInfo'])
+        sdk.geolocation.add_geolocation(batch_address, geo['id'], geo['latitude'], geo['longitude'], geo['additionalInfo'])
 
-        batch_addresses.append(batch_address)
-
-    return batch_addresses
+    return batch_address
 
 if __name__ == '__main__':
     product_passport_address = deploy_product_passport()

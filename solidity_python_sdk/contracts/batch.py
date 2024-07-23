@@ -76,11 +76,11 @@ class Batch:
         Args:
             contract_address (str): The address of the deployed Batch contract.
             batch_details (dict): A dictionary containing the batch details with keys such as:
-                "batchId" (str): The unique identifier for the batch.
-                "batchNumber" (str): The batch number.
-                "productionDate" (str): The production date of the batch.
-                "expiryDate" (str): The expiry date of the batch.
-                "quantity" (int): The quantity of items in the batch.
+                "batchId" (int): The unique identifier for the batch.
+                "amount" (int): The quantity of items in the batch.
+                "assemblingTime" (int): The UNIX timestamp of the assembling time.
+                "transportDetails" (str): Details about the transport.
+                "ipfsHash" (str): The IPFS hash of the batch metadata.
 
         Returns:
             dict: The transaction receipt containing details of the transaction.
@@ -93,19 +93,19 @@ class Batch:
         try:
             tx = contract.functions.setBatchDetails(
                 batch_details["batchId"],
-                batch_details["batchNumber"],
-                batch_details["productionDate"],
-                batch_details["expiryDate"],
-                batch_details["quantity"]
+                batch_details["amount"],
+                batch_details["assemblingTime"],
+                batch_details["transportDetails"],
+                batch_details["ipfsHash"]
             ).build_transaction({
                 'from': self.account.address,
                 'nonce': self.web3.eth.get_transaction_count(self.account.address, 'pending'),
                 'gas': contract.functions.setBatchDetails(
                     batch_details["batchId"],
-                    batch_details["batchNumber"],
-                    batch_details["productionDate"],
-                    batch_details["expiryDate"],
-                    batch_details["quantity"]
+                    batch_details["amount"],
+                    batch_details["assemblingTime"],
+                    batch_details["transportDetails"],
+                    batch_details["ipfsHash"]
                 ).estimate_gas({'from': self.account.address}),
                 'gasPrice': self.web3.to_wei(self.gwei_bid, 'gwei')
             })
@@ -126,7 +126,7 @@ class Batch:
 
         Args:
             contract_address (str): The address of the deployed Batch contract.
-            batch_id (str): The unique identifier for the batch.
+            batch_id (int): The unique identifier for the batch.
 
         Returns:
             dict: The batch details retrieved from the contract.
