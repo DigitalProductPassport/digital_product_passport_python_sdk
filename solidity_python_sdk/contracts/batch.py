@@ -53,10 +53,10 @@ class Batch:
         self.logger.info(f"Deploying Batch contract from {self.account.address}")
         Contract = self.web3.eth.contract(abi=self.contract["abi"], bytecode=self.contract["bytecode"])
         
-        tx = Contract.constructor(product_passport_address).build_transaction({
+        tx = Contract.constructor(product_passport_address, self.account.address).build_transaction({
             'from': self.account.address,
             'nonce': self.web3.eth.get_transaction_count(self.account.address, 'pending'),
-            'gas': Contract.constructor(product_passport_address).estimate_gas({'from': self.account.address}),
+            'gas': Contract.constructor(product_passport_address, self.account.address).estimate_gas({'from': self.account.address}),
             'gasPrice': self.web3.to_wei(self.gwei_bid, 'gwei')
         })
         utils.check_funds(self.web3, self.account.address, tx['gas'] * tx['gasPrice'])
@@ -91,7 +91,7 @@ class Batch:
         contract = self.web3.eth.contract(address=contract_address, abi=self.contract['abi'])
 
         try:
-            tx = contract.functions.createBatch(
+            tx = contract.functions.setBatchDetails(
                 batch_details["batchId"],
                 batch_details["batchNumber"],
                 batch_details["productionDate"],
@@ -100,7 +100,7 @@ class Batch:
             ).build_transaction({
                 'from': self.account.address,
                 'nonce': self.web3.eth.get_transaction_count(self.account.address, 'pending'),
-                'gas': contract.functions.createBatch(
+                'gas': contract.functions.setBatchDetails(
                     batch_details["batchId"],
                     batch_details["batchNumber"],
                     batch_details["productionDate"],
@@ -136,7 +136,7 @@ class Batch:
         """
         contract = self.web3.eth.contract(address=contract_address, abi=self.contract['abi'])
         try:
-            batch = contract.functions.getBatch(batch_id).call()
+            batch = contract.functions.getBatchDetails(batch_id).call()
             self.logger.info(f"Batch retrieved: {batch}")
             return batch
         except Exception as e:

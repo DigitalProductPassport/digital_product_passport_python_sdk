@@ -1,78 +1,90 @@
-from nicegui import ui
+import json
 from web3 import Web3
-from solidity_python_sdk.main import DigitalProductPassportSDK, ProductPassport
+from datetime import datetime
+from solidity_python_sdk.main import DigitalProductPassportSDK
 
-"""
-In this demo example, we are using NiceGUI to deploy a quick page and 
-show the Digital Product Passport contracts in action.
-NiceGUI has very easy-to-follow documentation that can be found here:
-https://nicegui.io
-"""
-
-# Initialize the SDK
+# Initialize SDK
 sdk = DigitalProductPassportSDK()
-passport = ProductPassport(sdk)
 
-# Define UI components
-ui.label('Digital Product Passport Demo')
-contract_address_input = ui.input('Contract Address', placeholder='Enter contract address')
-product_id_input = ui.input('Product ID (Numeric)', placeholder='Enter numeric product ID')
-ui.button('Get Product Details', on_click=lambda: get_product_details(contract_address_input.value, product_id_input.value))
+# Product details to deploy
+product_details = {
+    "uid": "BRG-2023-001",
+    "gtin": "7894561230123",
+    "taricCode": "1905",
+    "manufacturerInfo": "Sweet Delights",
+    "consumerInfo": "Enjoy your Brigadeiro responsibly! Perfect for parties, celebrations, and gifting.",
+    "endOfLifeInfo": "Dispose of the packaging properly. Recycle where facilities exist."
+}
 
-# Display product details and map
-product_details_output = ui.label('Product Details will be displayed here')
-leaflet_map = ui.leaflet(center=(0, 0), zoom=2)
+# Product data to deploy
+product_data = {
+    "productId": 1,
+    "description": "Brigadeiro Product Passport",
+    "manuals": ["QmbnzbFDcmtJhyw5XTLkcnkJMhW86YZg6oc3FsNBeN2r4W"],
+    "specifications": ["QmbnzbFDcmtJhyw5XTLkcnkJMhW86YZg6oc3FsNBeN2r4W"],
+    "batchNumber": "BRG-2023-001",
+    "productionDate": "2023-06-20",
+    "expiryDate": "2023-12-31",
+    "certifications": "FDA-5678",
+    "warrantyInfo": "Not applicable",
+    "materialComposition": "Condensed milk, cocoa powder, butter, chocolate sprinkles",
+    "complianceInfo": "Compliant with local food safety regulations",
+    "ipfs": "QmWDYhFAaT89spcqbKYboyCm6mkYSxKJaWUuS18Akmw96t"
+}
 
-# Function to get product details
-def get_product_details(contract_address, product_id):
-    try:
-        # Ensure the contract address is valid
-        if not Web3.is_address(contract_address):
-            product_details_output.set_text("Error: Invalid contract address.")
-            return
+def convert_to_unix_timestamp(date_string):
+    date_format = "%Y-%m-%d %H:%M:%S"
+    dt = datetime.strptime(date_string, date_format)
+    return int(dt.timestamp())
 
-        # Convert product_id to integer
-        try:
-            product_id_int = int(product_id)
-        except ValueError:
-            product_details_output.set_text("Error: Product ID must be a numeric value.")
-            return
-
-        # Retrieve product details
-        product_data_retrieved = passport.get_product(contract_address, product_id_int)
-
-        # Display product details
-        details = (
-            f"UID: {product_data_retrieved[0]}\n"
-            f"GTIN: {product_data_retrieved[1]}\n"
-            f"Taric Code: {product_data_retrieved[2]}\n"
-            f"Manufacturer Info: {product_data_retrieved[3]}\n"
-            f"Consumer Info: {product_data_retrieved[4]}\n"
-            f"End of Life Info: {product_data_retrieved[5]}"
-        )
-        product_details_output.set_text(details)
-        
-        # Fetch batch geolocations and plot them
-        batch_geolocations = product_data_retrieved.get('geolocations', [])
-        plot_geolocations(batch_geolocations)
-        
-    except Exception as e:
-        product_details_output.set_text(f"Error: {str(e)}")
-
-# Function to plot geolocations on the map
-def plot_geolocations(geolocations):
-    leaflet_map.clear_layers()
-    if not geolocations:
-        leaflet_map.marker([0, 0], "No geolocations available.")
-        return
-
-    for loc in geolocations:
-        leaflet_map.marker([loc['latitude'], loc['longitude']], tooltip=loc.get('description', 'No description'))
+def deploy_product_passport():
+    product_passport_address = sdk.product_passport.deploy(sdk.account.address)
+    sdk.product_passport.authorize_entity(product_passport_address, sdk.account.address)
     
-    if geolocations:
-        first_location = geolocations[0]
-        leaflet_map.set_center([first_location['latitude'], first_location['longitude']])
-        leaflet_map.set_zoom(5)
+    product_id = product_data['productId']
+    sdk.product_passport.set_product(product_passport_address, product_id, product_details)
+    
+    result = sdk.product_passport.set_product_data(product_passport_address, product_id, product_data)
+    
+    print(f"ProductPassport Contract Address: {product_passport_address}")
+    print(f"Set Product Result: {result}")
 
+    return product_passport_address
 
-ui.run()
+def deploy_batch_contract(product_passport_address):
+    geolocations = [
+        {"id": "batch1", "latitude": "40.7128", "longitude": "-74.0060", "additionalInfo": "New York City, USA"},
+        {"id": "batch2", "latitude": "34.0522", "longitude": "-118.2437", "additionalInfo": "Los Angeles, USA"},
+        {"id": "batch3", "latitude": "51.5074", "longitude": "-0.1278", "additionalInfo": "London, UK"},
+        {"id": "batch4", "latitude": "35.6895", "longitude": "139.6917", "additionalInfo": "Tokyo, Japan"},
+        {"id": "batch5", "latitude": "-33.8688", "longitude": "151.2093", "additionalInfo": "Sydney, Australia"}
+    ]
+
+    batch_addresses = []
+
+    for i, geo in enumerate(geolocations):
+        batch_address = sdk.batch.deploy(product_passport_address)
+        
+        assembling_time = convert_to_unix_timestamp("2023-06-20 12:00:00")
+        batch_details = {
+            "batchId": i + 1,
+            "amount": 100,
+            "assemblingTime": assembling_time,
+            "transportDetails": f"Shipped via Express {i + 1}",
+            "ipfsHash": product_data['ipfs']
+        }
+
+        result = sdk.batch.create_batch(batch_address, batch_details)
+        print(f"Batch {i+1} Contract Address: {batch_address}")
+        print(f"Set Batch {i+1} Result: {result}")
+
+        sdk.batch.set_geolocation(batch_address, geo['id'], geo['latitude'], geo['longitude'], geo['additionalInfo'])
+
+        batch_addresses.append(batch_address)
+
+    return batch_addresses
+
+if __name__ == '__main__':
+    product_passport_address = deploy_product_passport()
+    batch_addresses = deploy_batch_contract(product_passport_address)
+    print(f"Deployed Batch Addresses: {batch_addresses}")
