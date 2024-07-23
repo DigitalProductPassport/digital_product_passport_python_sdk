@@ -36,7 +36,7 @@ def test_set_and_get_product(sdk):
     logging.debug(f"Contract deployed at address: {contract_address}")
 
     # Authorize the contract with the deployed address
-    entity_address = contract_address
+    entity_address = sdk.account.address
     tx_receipt = passport.authorize_entity(contract_address, entity_address)
     logging.debug(f"Authorization transaction receipt: {tx_receipt}")
 
@@ -56,12 +56,12 @@ def test_set_and_get_product(sdk):
 
     # Retrieve and assert product details
     product_data_retrieved = passport.get_product(contract_address, "123456")
-    assert product_data_retrieved['uid'] == "unique_id"
-    assert product_data_retrieved['gtin'] == "1234567890123"
-    assert product_data_retrieved['taricCode'] == "1234"
-    assert product_data_retrieved['manufacturerInfo'] == "Manufacturer XYZ"
-    assert product_data_retrieved['consumerInfo'] == "Consumer XYZ"
-    assert product_data_retrieved['endOfLifeInfo'] == "Dispose properly"
+    assert product_data_retrieved[0] == "unique_id"
+    assert product_data_retrieved[1] == "1234567890123"
+    assert product_data_retrieved[2] == "1234"
+    assert product_data_retrieved[3] == "Manufacturer XYZ"
+    assert product_data_retrieved[4] == "Consumer XYZ"
+    assert product_data_retrieved[5] == "Dispose properly"
 
 def test_set_and_get_product_data(sdk):
     passport = ProductPassport(sdk)
@@ -71,12 +71,13 @@ def test_set_and_get_product_data(sdk):
     logging.debug(f"Contract deployed at address: {contract_address}")
 
     # Authorize the contract with the deployed address
-    entity_address = contract_address
+    entity_address = sdk.account.address
     tx_receipt = passport.authorize_entity(contract_address, entity_address)
     logging.debug(f"Authorization transaction receipt: {tx_receipt}")
 
     # Define product data
     product_data = {
+        "productId": 123456,
         "description": "Product description",
         "manuals": ["manual1.pdf"],
         "specifications": ["spec1.pdf"],
@@ -86,7 +87,8 @@ def test_set_and_get_product_data(sdk):
         "certifications": "ISO123",
         "warrantyInfo": "1 year",
         "materialComposition": "Materials",
-        "complianceInfo": "Complies with regulations"
+        "complianceInfo": "Complies with regulations",
+        "ipfs": "QmWDYhFAaT89spcqbKYboyCm6mkYSxKJaWUuS18Akmw96t"
     }
 
     # Set product data
@@ -95,13 +97,14 @@ def test_set_and_get_product_data(sdk):
 
     # Retrieve and assert product data
     product_data_retrieved = passport.get_product_data(contract_address, 123456)
-    assert product_data_retrieved['description'] == "Product description"
-    assert product_data_retrieved['manuals'] == ["manual1.pdf"]
-    assert product_data_retrieved['specifications'] == ["spec1.pdf"]
-    assert product_data_retrieved['batchNumber'] == "123ABC"
-    assert product_data_retrieved['productionDate'] == "2023-01-01"
-    assert product_data_retrieved['expiryDate'] == "2023-12-31"
-    assert product_data_retrieved['certifications'] == "ISO123"
-    assert product_data_retrieved['warrantyInfo'] == "1 year"
-    assert product_data_retrieved['materialComposition'] == "Materials"
-    assert product_data_retrieved['complianceInfo'] == "Complies with regulations"
+    assert product_data_retrieved[0] == "Product description"
+    assert product_data_retrieved[1] == ["manual1.pdf"]
+    assert product_data_retrieved[2] == ["spec1.pdf"]
+    assert product_data_retrieved[3] == "123ABC"
+    assert product_data_retrieved[4] == "2023-01-01"
+    assert product_data_retrieved[5] == "2023-12-31"
+    assert product_data_retrieved[6] == "ISO123"
+    assert product_data_retrieved[7] == "1 year"
+    assert product_data_retrieved[8] == "Materials"
+    assert product_data_retrieved[9] == "Complies with regulations"
+    assert product_data_retrieved[10] == "QmWDYhFAaT89spcqbKYboyCm6mkYSxKJaWUuS18Akmw96t"

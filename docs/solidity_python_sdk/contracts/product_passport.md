@@ -165,8 +165,6 @@ product_details = {
     "endOfLifeInfo": "End of Life Information"
 }
 tx_receipt = product_passport.set_product(contract_address, "product_id_1", product_details)
-
-# Get product details
 product = product_passport.get_product(contract_address, "product_id_1")
 print(product)
 ```
