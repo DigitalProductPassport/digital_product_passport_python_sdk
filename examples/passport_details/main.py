@@ -26,11 +26,11 @@ with ui.row():
         batch_contract_address_input = ui.input('Batch Contract Address', placeholder='0x014e6Be5cE6CE4cba1F9be826a6Da3A0af04447D')
         batch_id_input = ui.input('Batch ID (Numeric)', placeholder='Enter numeric batch ID, use 1')
         ui.button('Get Batch Details', on_click=lambda: get_batch_details(batch_contract_address_input.value, batch_id_input.value))
-# Batch Details Section
-with ui.column().style('padding: 50px;'):
-    ui.label('Batch Details').style('font-weight: bold; font-size: 20px;')
-    batch_details_output = ui.label('Batch Details will be displayed here')
-    leaflet_map = ui.leaflet(center=(0, 0), zoom=2)
+    # Batch Details Section
+    with ui.column().style('padding: 50px;'):
+        ui.label('Batch Details').style('font-weight: bold; font-size: 20px;')
+        batch_details_output = ui.label('Batch Details will be displayed here')
+        leaflet_map = ui.leaflet(center=(0, 0), zoom=2)
 
 def get_product_details(product_contract_address, product_id):
     try:
