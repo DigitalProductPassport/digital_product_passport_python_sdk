@@ -28,22 +28,22 @@ class Geolocation:
         self.contract = sdk.contracts['Geolocation']
         self.logger = logging.getLogger(__name__)
 
-    def add_geolocation(self, contract_address, batch_id, latitude, longitude):
+    def set_geolocation(self, contract_address, batch_id, latitude, longitude):
         """
         Adds geolocation information for a specific batch in the Geolocation contract.
 
         Args:
             contract_address (str): The address of the deployed Geolocation contract.
-            batch_id (str): The unique identifier for the batch.
-            latitude (float): The latitude of the geolocation.
-            longitude (float): The longitude of the geolocation.
+            batch_id (string): The unique identifier for the batch.
+            latitude (string): The latitude of the geolocation.
+            longitude (string): The longitude of the geolocation.
 
         Returns:
             dict: The transaction receipt containing details of the transaction.
         """
         contract = self.web3.eth.contract(address=contract_address, abi=self.contract['abi'])
-        tx_hash = contract.functions.addGeolocation(batch_id, latitude, longitude).transact({'from': self.account.address})
-        tx_receipt = self.web3.eth.wait_for_transaction_receipt(tx_hash)
+        tx_hash = contract.functions.setGeolocation(batch_id, latitude, longitude).transact({'from': self.account.address})
+        tx_receipt = self.web3.eth.wait_for_transaction_receipt(tx_hash, timeout=300)
         return tx_receipt
 
     def get_geolocation(self, contract_address, batch_id):

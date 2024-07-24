@@ -76,7 +76,7 @@ def deploy_batch_contract(product_passport_address):
         print(f"Batch {i+1} Contract Address: {batch_address}")
         print(f"Set Batch {i+1} Result: {result}")
 
-        sdk.geolocation.add_geolocation(batch_address, geo['id'], geo['latitude'], geo['longitude'], geo['additionalInfo'])
+        sdk.geolocation.set_geolocation(batch_address, geo['id'], geo['latitude'], geo['longitude'])
 
     return batch_address
 

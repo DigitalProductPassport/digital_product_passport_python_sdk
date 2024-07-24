@@ -71,7 +71,7 @@ class ProductPassport:
 
         signed_tx = self.web3.eth.account.sign_transaction(tx, self.account.key)
         tx_hash = self.web3.eth.send_raw_transaction(signed_tx.raw_transaction)
-        tx_receipt = self.web3.eth.wait_for_transaction_receipt(tx_hash)
+        tx_receipt = self.web3.eth.wait_for_transaction_receipt(tx_hash, timeout=300)
         contract_address = tx_receipt.contractAddress
 
         self.logger.info(f"ProductPassport contract deployed at address: {contract_address}")
@@ -103,7 +103,7 @@ class ProductPassport:
             
             signed_tx = self.web3.eth.account.sign_transaction(tx, self.account.key)
             tx_hash = self.web3.eth.send_raw_transaction(signed_tx.raw_transaction)
-            tx_receipt = self.web3.eth.wait_for_transaction_receipt(tx_hash)
+            tx_receipt = self.web3.eth.wait_for_transaction_receipt(tx_hash, timeout=300)
 
             self.logger.info(f"Entity authorized transaction receipt: {tx_receipt}")
             return tx_receipt
@@ -155,7 +155,7 @@ class ProductPassport:
             
             signed_tx = self.web3.eth.account.sign_transaction(tx, self.account.key)
             tx_hash = self.web3.eth.send_raw_transaction(signed_tx.raw_transaction)
-            tx_receipt = self.web3.eth.wait_for_transaction_receipt(tx_hash)
+            tx_receipt = self.web3.eth.wait_for_transaction_receipt(tx_hash, timeout=300)
 
             self.logger.info(f"Product set transaction receipt: {tx_receipt}")
             return tx_receipt
@@ -239,7 +239,7 @@ class ProductPassport:
             
             signed_tx = self.web3.eth.account.sign_transaction(tx, self.account.key)
             tx_hash = self.web3.eth.send_raw_transaction(signed_tx.raw_transaction)
-            tx_receipt = self.web3.eth.wait_for_transaction_receipt(tx_hash)
+            tx_receipt = self.web3.eth.wait_for_transaction_receipt(tx_hash, timeout=300)
 
             self.logger.info(f"Product data set transaction receipt: {tx_receipt}")
             return tx_receipt
