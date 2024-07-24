@@ -14,19 +14,18 @@ with ui.row():
         product_contract_address_input = ui.input('Product Contract Address', placeholder='0x014e6Be5cE6CE4cba1F9be826a6Da3A0af04447D')
         product_id_input = ui.input('Product ID (Numeric)', placeholder='Enter numeric product ID, use 1')
         ui.button('Get Product Details', on_click=lambda: get_product_details(product_contract_address_input.value, product_id_input.value))
+    
+    with ui.column().style('padding: 50px;'):
+        ui.label('Product Details').style('font-weight: bold; font-size: 20px;')
+        product_details_output = ui.label('Product Details will be displayed here')
+        manuals_output = ui.label('Manuals will be displayed here')
+        specifications_output = ui.label('Specifications will be displayed here')
 
+with ui.row():
     with ui.column().style('margin: 50px;'):
         batch_contract_address_input = ui.input('Batch Contract Address', placeholder='0x014e6Be5cE6CE4cba1F9be826a6Da3A0af04447D')
         batch_id_input = ui.input('Batch ID (Numeric)', placeholder='Enter numeric batch ID, use 1')
         ui.button('Get Batch Details', on_click=lambda: get_batch_details(batch_contract_address_input.value, batch_id_input.value))
-
-# Product Details Section
-with ui.column().style('padding: 50px;'):
-    ui.label('Product Details').style('font-weight: bold; font-size: 20px;')
-    product_details_output = ui.label('Product Details will be displayed here')
-    manuals_output = ui.label('Manuals will be displayed here')
-    specifications_output = ui.label('Specifications will be displayed here')
-
 # Batch Details Section
 with ui.column().style('padding: 50px;'):
     ui.label('Batch Details').style('font-weight: bold; font-size: 20px;')
