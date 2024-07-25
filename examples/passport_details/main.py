@@ -73,7 +73,9 @@ def get_product_details(product_contract_address, product_id):
                 ui.label(f"Manufacturer Info: {manufacturer_info}").classes('blue-box')
                 ui.label(f"Consumer info: {consumer_info}").classes('blue-box')
                 ui.label(f"End of life: {end_of_life_info}").classes('blue-box')
-            plot_product_specifications(product_specs)
+            with ui.grid(columns=2):
+                plot_product_specifications(product_specs)
+                plot_product_documents(product_specs)
 
     except ValueError as e:
         product_details_output.set_text(f"Input Error: {str(e)}")
@@ -100,7 +102,7 @@ def get_batch_details(batch_contract_address, batch_id):
         if len(batch_details) > 0:
             quantity, assembling_time, transport_details = batch_details[:3]
             with ui.card().classes('w-full'):
-                with ui.grid(columns=2):
+                with ui.grid(columns=1):
                     ui.label(f"Quantity: {quantity}").classes('blue-box')
                     ui.label(f"Assembling Time: {assembling_time}").classes('blue-box')
                     ui.label(f"Transport Details: {transport_details}").classes('blue-box')
@@ -161,29 +163,29 @@ def get_pinata_url(ipfs_hash):
 
 def plot_product_specifications(specs):
     description, manuals, specifications, batch_number, production_date, expiry_date, certifications, warranty_info, material_composition, compliance_info = specs
-    with ui.card():
-        with ui.grid(columns=2):
-            ui.label(f"Description: {description}").classes('blue-box')
-            ui.label(f"Batch: {batch_number}").classes('blue-box')
-            ui.label(f"Production date: {production_date}").classes('blue-box')
-            ui.label(f"Expiry date: {expiry_date}").classes('blue-box')
-        with ui.grid(columns=2):
-            ui.label(f"Certifications: {certifications}").classes('blue-box')
-            ui.label(f"Warranty: {warranty_info}").classes('blue-box')
-            ui.label(f"Material Composition: {material_composition}").classes('blue-box')
-            ui.label(f"Compliance: {compliance_info}").classes('blue-box')
-    with ui.tabs().classes('w-full') as tabs:
-        tab_manuals = ui.tab('Manuals')
-        tab_specifications = ui.tab('Specifications')
+    with ui.grid(columns=2):
+        ui.label(f"Description: {description}").classes('blue-box')
+        ui.label(f"Batch: {batch_number}").classes('blue-box')
+        ui.label(f"Production date: {production_date}").classes('blue-box')
+        ui.label(f"Expiry date: {expiry_date}").classes('blue-box')
+        ui.label(f"Certifications: {certifications}").classes('blue-box')
+        ui.label(f"Warranty: {warranty_info}").classes('blue-box')
+        ui.label(f"Material Composition: {material_composition}").classes('blue-box')
+        ui.label(f"Compliance: {compliance_info}").classes('blue-box')
 
-    with ui.tab_panels(tabs, value=tab_manuals).classes('w-full'):
-        with ui.tab_panel(tab_manuals):
-            for each in manuals:
-                ipfs = get_pinata_url(each)
-                ui.html(f'<embed src="{ipfs}" type="application/pdf" height="100%" width="100%">').classes('w-full')  
-        with ui.tab_panel(tab_specifications):
-            for each in specifications:
-                ipfs = get_pinata_url(each)
-                ui.html(f'<embed src="{ipfs}" type="application/pdf" height="100%" width="100%">').classes('w-full')  
+def plot_product_documents(specs):
+        description, manuals, specifications, batch_number, production_date, expiry_date, certifications, warranty_info, material_composition, compliance_info = specs
+        with ui.tabs().classes('w-full') as tabs:
+            tab_manuals = ui.tab('Manuals')
+            tab_specifications = ui.tab('Specifications')
+        with ui.tab_panels(tabs, value=tab_manuals).classes('w-full'):
+            with ui.tab_panel(tab_manuals):
+                for each in manuals:
+                    ipfs = get_pinata_url(each)
+                    ui.html(f'<embed src="{ipfs}" type="application/pdf" height="100%" width="100%">').classes('w-full')  
+            with ui.tab_panel(tab_specifications):
+                for each in specifications:
+                    ipfs = get_pinata_url(each)
+                    ui.html(f'<embed src="{ipfs}" type="application/pdf" height="100%" width="100%">').classes('w-full')  
 
 ui.run()
