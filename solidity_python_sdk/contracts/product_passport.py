@@ -263,7 +263,7 @@ class ProductPassport:
         """
         contract = self.web3.eth.contract(address=contract_address, abi=self.contract['abi'])
         try:
-            product_data = contract.functions.getProductData(product_id)().call()
+            product_data = contract.functions.getProductData(product_id).call()
             self.logger.info(f"Product data retrieved: {product_data}")
             return product_data
         except Exception as e:

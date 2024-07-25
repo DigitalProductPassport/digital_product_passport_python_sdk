@@ -58,4 +58,4 @@ class Geolocation:
             tuple: A tuple containing the latitude and longitude of the geolocation.
         """
         contract = self.web3.eth.contract(address=contract_address, abi=self.contract['abi'])
-        return contract.functions.getGeolocation(batch_id)().call()
+        return contract.functions.getGeolocation(batch_id).call()
