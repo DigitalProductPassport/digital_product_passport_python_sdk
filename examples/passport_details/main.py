@@ -1,51 +1,55 @@
 import os
-from nicegui import ui
+from nicegui import ui, app
 from web3 import Web3
 from solidity_python_sdk.main import DigitalProductPassportSDK
 import logging
 
-# Initialize the SDK and ProductPassport class
 passport = DigitalProductPassportSDK()
-ui.page_title('Demo')
-# Custom CSS for styling
-ui.add_head_html('''
-    <style type="text/tailwindcss">
-        @layer components {
-            .blue-box {
-                @apply bg-blue-300 p-4 text-center shadow-lg rounded-lg text-white;
-                min-width: 200px;
-                max-width: 400px;
-            }
-            .leaflet-map {
-                width: 70%;
-                height: 400px;
-            }
-        }
-    </style>
-''')
 
-# UI components
-with ui.row().classes('w-full'):
-    ui.image("https://www.web3digitalproductpassport.com/img/logo.png").classes('w-[50px]')
-    ui.label('Demo - Digital Product Passport').style('color: #6E93D6; font-size: 200%; font-weight: 300')
-with ui.row().classes('w-full'):
-    with ui.tabs().classes('w-full') as product_tabs:
-        product_tab = ui.tab('Product Information').style('color: #6E93D6; font-size: 200%; font-weight: 300')
-        batch_tab = ui.tab('Batch').style('color: #6E93D6; font-size: 200%; font-weight: 300')
-    with ui.tab_panels(product_tabs, value=product_tab).classes('w-full'):
-        with ui.tab_panel(product_tab):
-            product_contract_address_input = ui.input('Product Contract Address', placeholder='0x8aB5ee83E093487a613fB58677c478758a29dab4').classes('input-field')
-            ui.button('Get Product Details', on_click=lambda: get_product_details(product_contract_address_input.value, 1)).classes('button')
-            product_details_output = ui.label(None)
-    with ui.tab_panels(product_tabs, value=batch_tab).classes('w-full'):
-        with ui.tab_panel(batch_tab):
-            batch_contract_address_input = ui.input('Batch Contract Address', placeholder='0x7874c7A4be5F8605446Bc91B18B0661f67cB6A14').classes('input-field')
-            batch_id_input = ui.input('Batch ID (Numeric)', placeholder='Enter numeric batch ID, use 1').classes('input-field')
-            ui.button('Get Batch Details', on_click=lambda: get_batch_details(batch_contract_address_input.value, batch_id_input.value)).classes('button')
-            batch_details_output = ui.label(None)
-            leaflet_map = ui.leaflet(center=(0, 0), zoom=2).classes('leaflet-map')
+@ui.page('/')
+def index():
+    # Initialize the SDK and ProductPassport class
+    ui.page_title('Demo')
+    # Custom CSS for styling
+    ui.add_head_html('''
+        <style type="text/tailwindcss">
+            @layer components {
+                .leaflet-map {
+                    width: 70%;
+                    height: 400px;
+                }
+                .pdf-viewer {
+                    width: 100%;
+                    height: 100%;
+                    min-height: 600px;
+                }
+            }
+        </style>
+    ''')
+    cache = app.storage.client
+    # UI components
+    with ui.row().classes('w-full'):
+        ui.image("https://www.web3digitalproductpassport.com/img/logo.png").classes('w-[50px]')
+        ui.label('Demo - Digital Product Passport').style('color: #6E93D6; font-size: 200%; font-weight: 300')
+    with ui.row().classes('w-full'):
+        with ui.tabs().classes('w-full') as product_tabs:
+            product_tab = ui.tab('Product Information').style('color: #6E93D6; font-size: 200%; font-weight: 300')
+            batch_tab = ui.tab('Batch').style('color: #6E93D6; font-size: 200%; font-weight: 300')
+        with ui.tab_panels(product_tabs, value=product_tab).classes('w-full'):
+            with ui.tab_panel(product_tab):
+                product_contract_address_input = ui.input('Product Contract Address', placeholder='0x8aB5ee83E093487a613fB58677c478758a29dab4').classes('input-field')
+                ui.button('Get Product Details', on_click=lambda: get_product_details(product_contract_address_input.value, 1)).classes('button')
+                
+        with ui.tab_panels(product_tabs, value=batch_tab).classes('w-full'):
+            with ui.tab_panel(batch_tab):
+                batch_contract_address_input = ui.input('Batch Contract Address', placeholder='0x7874c7A4be5F8605446Bc91B18B0661f67cB6A14').classes('input-field')
+                batch_id_input = ui.input('Batch ID (Numeric)', placeholder='Enter numeric batch ID, use 1').classes('input-field')
+                ui.button('Get Batch Details', on_click=lambda: get_batch_details(batch_contract_address_input.value, batch_id_input.value)).classes('button')
+
 
 def get_product_details(product_contract_address, product_id):
+    product_details_output = ui.label(None)
+
     try:
         if not Web3.is_address(product_contract_address):
             product_details_output.set_text("Error: Invalid product contract address.").classes('w-full')
@@ -66,14 +70,14 @@ def get_product_details(product_contract_address, product_id):
         uid, gtin, taric_code, manufacturer_info, consumer_info, end_of_life_info = product_data_retrieved[:6]
 
         with ui.card().classes('w-full'):
-            with ui.grid(columns=2):
+            with ui.grid(columns=2).classes('w-full'):
                 ui.label(f"UID: {uid}").classes('blue-box')
                 ui.label(f"GTIN: {gtin}").classes('blue-box')
                 ui.label(f"Taric Code: {taric_code}").classes('blue-box')
                 ui.label(f"Manufacturer Info: {manufacturer_info}").classes('blue-box')
                 ui.label(f"Consumer info: {consumer_info}").classes('blue-box')
                 ui.label(f"End of life: {end_of_life_info}").classes('blue-box')
-            with ui.grid(columns=2):
+            with ui.grid(columns=1).classes('w-full'):
                 plot_product_specifications(product_specs)
                 plot_product_documents(product_specs)
 
@@ -84,6 +88,7 @@ def get_product_details(product_contract_address, product_id):
         logging.error(f"Failed to retrieve product details: {e}")
 
 def get_batch_details(batch_contract_address, batch_id):
+    batch_details_output = ui.label(None)
     try:
         if not Web3.is_address(batch_contract_address):
             batch_details_output.set_text("Error: Invalid batch contract address.")
@@ -102,7 +107,7 @@ def get_batch_details(batch_contract_address, batch_id):
         if len(batch_details) > 0:
             quantity, assembling_time, transport_details = batch_details[:3]
             with ui.card().classes('w-full'):
-                with ui.grid(columns=1):
+                with ui.grid(columns=3).classes('w-full'):
                     ui.label(f"Quantity: {quantity}").classes('blue-box')
                     ui.label(f"Assembling Time: {assembling_time}").classes('blue-box')
                     ui.label(f"Transport Details: {transport_details}").classes('blue-box')
@@ -117,6 +122,7 @@ def get_batch_details(batch_contract_address, batch_id):
         logging.error(f"Failed to retrieve batch details: {e}")
 
 def plot_geolocations(geolocations):
+    leaflet_map = ui.leaflet(center=(0, 0), zoom=2).classes('leaflet-map')
     leaflet_map.clear_layers()
     rows = []
     if not geolocations:
@@ -126,7 +132,7 @@ def plot_geolocations(geolocations):
         for loc in geolocations:
             try:
                 latitude, longitude, additional_info = loc
-                leaflet_map.marker(latlng=(latitude, longitude))
+                leaflet_map.marker(latlng=(float(latitude), float(longitude)))
                 rows.append(
                     {
                         'latitude': latitude, 
@@ -139,7 +145,8 @@ def plot_geolocations(geolocations):
     if geolocations:
         first_location = geolocations
         latitude, longitude, additional_info = first_location
-        leaflet_map.set_center(center=(latitude, longitude))
+        leaflet_map.set_center(center=(float(latitude), float(longitude)))
+        leaflet_map.marker(latlng=(float(latitude), float(longitude)))
         leaflet_map.set_zoom(5)
         rows.append(
                     {
@@ -174,18 +181,20 @@ def plot_product_specifications(specs):
         ui.label(f"Compliance: {compliance_info}").classes('blue-box')
 
 def plot_product_documents(specs):
-        description, manuals, specifications, batch_number, production_date, expiry_date, certifications, warranty_info, material_composition, compliance_info = specs
-        with ui.tabs().classes('w-full') as tabs:
-            tab_manuals = ui.tab('Manuals')
-            tab_specifications = ui.tab('Specifications')
-        with ui.tab_panels(tabs, value=tab_manuals).classes('w-full'):
-            with ui.tab_panel(tab_manuals):
-                for each in manuals:
-                    ipfs = get_pinata_url(each)
-                    ui.html(f'<embed src="{ipfs}" type="application/pdf" height="100%" width="100%">').classes('w-full')  
-            with ui.tab_panel(tab_specifications):
-                for each in specifications:
-                    ipfs = get_pinata_url(each)
-                    ui.html(f'<embed src="{ipfs}" type="application/pdf" height="100%" width="100%">').classes('w-full')  
+    description, manuals, specifications, batch_number, production_date, expiry_date, certifications, warranty_info, material_composition, compliance_info = specs
+    with ui.grid(columns=1).classes('w-full'):
+        with ui.column():
+            with ui.tabs().classes('w-full') as tabs:
+                tab_manuals = ui.tab('Manuals')
+                tab_specifications = ui.tab('Specifications')
+            with ui.tab_panels(tabs, value=tab_manuals).classes('w-full'):
+                with ui.tab_panel(tab_manuals):
+                    for each in manuals:
+                        ipfs = get_pinata_url(each)
+                        ui.html(f'<embed src="{ipfs}" type="application/pdf" class="pdf-viewer">').classes('w-full')
+                with ui.tab_panel(tab_specifications):
+                    for each in specifications:
+                        ipfs = get_pinata_url(each)
+                        ui.html(f'<embed src="{ipfs}" type="application/pdf" class="pdf-viewer">').classes('w-full')
 
 ui.run()
