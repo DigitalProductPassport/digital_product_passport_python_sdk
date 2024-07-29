@@ -83,6 +83,16 @@ eb deploy
 
 ### Product Information
 
+You can click on Product information tab, and then add the contract address for the product passport on the text input.
+You can use this one as example: "0x8aB5ee83E093487a613fB58677c478758a29dab4"
+![](https://github.com/DigitalProductPassport/solidity-python-sdk/blob/main/examples/passport_details/images/product_details.gif)
+
+### Batch Information
+
+You can click on Batch  tab, and then add the contract address for the Batch on the text input.
+You can use this this one as example: "0x7874c7A4be5F8605446Bc91B18B0661f67cB6A14"
+![](https://github.com/DigitalProductPassport/solidity-python-sdk/blob/main/examples/passport_details/images/batch.gif)
+
 
 ## Code Overview
 
